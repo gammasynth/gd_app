@@ -13,10 +13,8 @@ signal ui_mercy
 
 static var app : App = null
 
-## If the program is a game, and not general software.
-@export var is_game : bool = false
-@export var show_title_instead_of_product_type:bool = false
 
+@export var ui_scene_path: String = ""#res://src/scene/ui/main_ui.tscn
 static var ui:Control = null# This needs to be an AppUI node, if using GUI for this App.
 var ui_subduing:bool = false
 
@@ -41,24 +39,50 @@ func _initialized() -> void:
 	seed(0)
 
 func _ready_up() -> Error:
-	return await start()
+	get_window().ready.connect(start)
+	return OK#await start()
 
 func _pre_app_start() -> Error: 
 	return OK
 
 
+
+func parse_boot_args() -> Error:
+	state = APP_STATES.PARSE_BOOT_ARGS
+	
+	var engine_args:PackedStringArray = OS.get_cmdline_args()
+	var user_args:PackedStringArray = OS.get_cmdline_user_args()
+	
+	
+	return _parse_boot_args(engine_args, user_args)
+
+
+func _parse_boot_args(_engine_args:PackedStringArray, _user_args:PackedStringArray) -> Error: return OK
+
+
 func _pre_start() -> Error:
+	
+	print_rich(Text.color("[gammasynth]", Text.COLORS.green))
+	print(" ")
+	
+	var args_err: Error = parse_boot_args()
+	if args_err == OK: pass
+	else:
+		if args_err == ERR_SKIP:
+			close()
+			return OK
+	
+	# begin app
+	
+	state = APP_STATES.BOOT
+	
+	print_rich((str("Starting " + title + "...")))
+	
 	db.debug_toggled.connect(func(b:bool): debug_all = b)
 	debug = debug
 	
 	db.deep_debug_toggled.connect(func(b:bool): deep_debug_all = b)
 	deep_debug = deep_debug
-	
-	state = APP_STATES.BOOT
-	
-	print_rich(Text.color("[gammasynth]", Text.COLORS.green))
-	print(" ")
-	print_rich((str("Starting " + title + "...")))
 	
 	chat("debug mode", Text.COLORS.green)
 	if debug_database: 
@@ -66,6 +90,17 @@ func _pre_start() -> Error:
 		
 	print(" ")
 	
+	if show_boot_info:
+		deep_boot_info()
+	
+	
+	
+	# setup ui, if using
+	
+	if not ui_scene_path.is_empty(): 
+		chatd("loading AppUI from path...")
+		ui = load(ui_scene_path).instantiate()
+		await Make.child(ui, get_window())
 	
 	await _pre_app_start()
 	app_starting.emit()
@@ -75,9 +110,7 @@ func _pre_start() -> Error:
 			await ui_mercy
 	
 	
-	
-	var product_type:String = "app"; if is_game: product_type = "game"
-	if show_title_instead_of_product_type: product_type = title
+	# setup registry, if using
 	
 	if registry_system:
 		state = APP_STATES.REGISTRY_BOOT
@@ -107,18 +140,20 @@ func _pre_start() -> Error:
 		print_rich((str(product_type + " files inititalized!")))
 		#print(" ")
 	
-	print_rich((str(title + " started.")))
-	print(" ")
 	
+	print_rich(Text.color(str(title + " started."), Text.COLORS.cyan))
+	print(" ")
+	state = APP_STATES.RUNNING
 	started = true
 	
 	return OK
 
 
-func _finish_tick() -> Error:
-	print_rich(Text.color(str(title + " started."), Text.COLORS.cyan))
-	print(" ")
-	return OK
+#func _post_start() -> Error: 
+	#return OK
+#
+#func _finish_tick() -> Error:
+	#return OK
 
 
 #static func system_event(event_name:String, event_text:String, event_importance:int=0) -> void:
@@ -139,3 +174,27 @@ static func get_unique_id() -> int:
 	rng.seed = game_seed + unique_id_count
 	
 	return rng.randi()
+
+
+
+
+static func close() -> void:
+	
+	state = APP_STATES.QUERY
+	# query_type = type_quit ~?
+	# add close query confirm here before close code below
+	
+	state = APP_STATES.CLOSING
+	
+	
+	if ui:
+		ui.queue_free()
+	
+	await app.get_tree().process_frame
+	
+	if app.registry:
+		app.registry.queue_free()
+	
+	await app.get_tree().process_frame
+	
+	app.get_tree().quit()
