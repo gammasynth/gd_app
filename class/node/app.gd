@@ -29,14 +29,20 @@ static var unique_id_count : int = 0
 var started: bool = false
 
 
-
-
 func _initialized() -> void:
 	if app: push_error("No, only use one App.gd based node.")
 	app = self
 	session_seed = randi()
 	game_seed = randi()
 	seed(0)
+	
+	track_device_app()
+	
+	_app_initialized()
+
+func _app_initialized() -> void:
+	return
+
 
 func _ready_up() -> Error:
 	get_window().ready.connect(start)
@@ -54,18 +60,26 @@ func parse_boot_args() -> Error:
 	var user_args:PackedStringArray = OS.get_cmdline_user_args()
 	
 	
-	return _parse_boot_args(engine_args, user_args)
+	return await _parse_boot_args(engine_args, user_args)
 
 
 func _parse_boot_args(_engine_args:PackedStringArray, _user_args:PackedStringArray) -> Error: return OK
 
 
+func _welcome_new_user() -> void: return
+
 func _pre_start() -> Error:
+	
+	db.debug_toggled.connect(func(b:bool): debug_all = b)
+	debug = debug
+	
+	db.deep_debug_toggled.connect(func(b:bool): deep_debug_all = b)
+	deep_debug = deep_debug
 	
 	print_rich(Text.color("[gammasynth]", Text.COLORS.green))
 	print(" ")
 	
-	var args_err: Error = parse_boot_args()
+	var args_err: Error = await parse_boot_args()
 	if args_err == OK: pass
 	else:
 		if args_err == ERR_SKIP:
@@ -78,12 +92,6 @@ func _pre_start() -> Error:
 	
 	print_rich((str("Starting " + title + "...")))
 	
-	db.debug_toggled.connect(func(b:bool): debug_all = b)
-	debug = debug
-	
-	db.deep_debug_toggled.connect(func(b:bool): deep_debug_all = b)
-	deep_debug = deep_debug
-	
 	chat("debug mode", Text.COLORS.green)
 	if debug_database: 
 		chat("debug database mode", Text.COLORS.green, true)
@@ -92,9 +100,9 @@ func _pre_start() -> Error:
 	
 	if show_boot_info:
 		deep_boot_info()
+		print(" ")
 	
-	
-	
+	if first_run: await _welcome_new_user()
 	# setup ui, if using
 	
 	if not ui_scene_path.is_empty(): 
@@ -143,6 +151,11 @@ func _pre_start() -> Error:
 	
 	print_rich(Text.color(str(title + " started."), Text.COLORS.cyan))
 	print(" ")
+	
+	
+	var app_sesh_err:Error = await start_app_session()
+	check("start_app_session", app_sesh_err)
+	
 	state = APP_STATES.RUNNING
 	started = true
 	
@@ -154,6 +167,13 @@ func _pre_start() -> Error:
 #
 #func _finish_tick() -> Error:
 	#return OK
+
+func start_app_session() -> Error:
+	state = APP_STATES.DEVICE_START_SESSION
+	return await _start_app_session()
+
+func _start_app_session() -> Error:
+	return OK
 
 
 #static func system_event(event_name:String, event_text:String, event_importance:int=0) -> void:
