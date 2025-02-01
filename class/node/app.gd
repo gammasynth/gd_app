@@ -28,6 +28,8 @@ static var unique_id_count : int = 0
 
 var started: bool = false
 
+static var load_tracker: LoadTracker
+
 
 func _initialized() -> void:
 	if app: push_error("No, only use one App.gd based node.")
@@ -125,9 +127,15 @@ func _pre_start() -> Error:
 		await get_tree().create_timer(0.01).timeout
 		print_rich((str("Preparing " + product_type + " files...")))
 		
+		
 		if not registry:
 			registry = Registry.new("Registry")
 			await Make.child(registry, self)
+			registry.load_tracker = LoadTracker.new()
+			registry.load_tracker.finished.connect(func(): registry.load_tracker = null)
+		
+		load_tracker = registry.load_tracker
+		load_tracker.finished.connect(func(): load_tracker = null)
 		
 		pre_load.emit()
 		if ui:
