@@ -52,6 +52,7 @@ var first_run: bool = true
 @export var mandatory_device_tracking: bool = true
 @export var clear_all_user_files_on_version_update: bool = true
 
+
 func get_res_version() -> void:
 	var res: Dictionary = File.load_dict_file("res://version.json")
 	version = res.get("version")

@@ -81,6 +81,13 @@ func _pre_start() -> Error:
 	print_rich(Text.color("[gammasynth]", Text.COLORS.green))
 	print(" ")
 	
+	
+	if not ui_scene_path.is_empty(): 
+		chatd("loading AppUI from path...")
+		ui = load(ui_scene_path).instantiate()
+		await Make.child(ui, get_window())
+	
+	
 	var args_err: Error = await parse_boot_args()
 	if args_err == OK: pass
 	else:
@@ -107,17 +114,13 @@ func _pre_start() -> Error:
 	if first_run: await _welcome_new_user()
 	# setup ui, if using
 	
-	if not ui_scene_path.is_empty(): 
-		chatd("loading AppUI from path...")
-		ui = load(ui_scene_path).instantiate()
-		await Make.child(ui, get_window())
-	
 	await _pre_app_start()
 	app_starting.emit()
 	
 	if ui:
 		if ui_subduing:
 			await ui_mercy
+	
 	
 	
 	# setup registry, if using
