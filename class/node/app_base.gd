@@ -1,7 +1,14 @@
 extends DatabaseNode
 
+## AppBase is a Foundational class with the skeleton of properties App class may use.
 class_name AppBase
 
+#signal app_starting
+
+signal pre_load
+signal ui_mercy
+
+## An App can be in one of multiple APP_STATES at once.
 enum APP_STATES {
 	INIT, 
 	DEVICE_START_SESSION,
@@ -15,18 +22,26 @@ enum APP_STATES {
 	CLOSING
 	}
 
+## The current state from APP_STATES that an App is in, at a time.
 static var state : APP_STATES = APP_STATES.INIT
 
-
+## Reccomended to keep debug_all turned off, unless bugfixing or implementing features.
 static var debug_all:bool = false
+
+## WARNING! Some games may print an absurd amount of statements when this is turned on!
 static var deep_debug_all:bool = false
 
+## Title of software, pulls from project settings. Set title in project settings first.
 static var title: String = ProjectSettings.get_setting("application/config/name")
 
 
 ## If the program is a game, and not general software.
 @export var is_game : bool = false
+
+## Reccomended to turn on for games, or apps with very nice names.
 @export var show_title_instead_of_product_type:bool = false
+
+## product_type is mostly used for print statements.
 var product_type:String = "app":
 	get:
 		if is_game: product_type = "game"
@@ -34,6 +49,7 @@ var product_type:String = "app":
 		if show_title_instead_of_product_type: product_type = title
 		return product_type
 
+## whether to log deep information about app startup.
 @export var show_boot_info: bool = false
 
 
@@ -51,6 +67,14 @@ static var version: String = "0.0.0.1"
 var first_run: bool = true
 @export var mandatory_device_tracking: bool = true
 @export var clear_all_user_files_on_version_update: bool = true
+
+static var is_loader_instance:bool=false
+static var load_tracker: LoadTracker
+
+
+@export var ui_scene_path: String = ""#res://src/scene/ui/main_ui.tscn
+static var ui:Control = null# This needs to be an AppUI node, if using GUI for this App.
+var ui_subduing:bool = false
 
 
 func get_res_version() -> void:
@@ -100,8 +124,8 @@ func track_device_app() -> void:
 func deep_boot_info() -> void:
 	# ---
 	
-	chat(str("engine args: " + str(OS.get_cmdline_args())))
-	chat(str("user args: " + str(OS.get_cmdline_user_args())))
+	#chat(str("engine args: " + str(OS.get_cmdline_args())))
+	#chat(str("user args: " + str(OS.get_cmdline_user_args())))
 	if debug: print(" ")
 	
 	#chat(str("omni is running on: " + str(OS.get_distribution_name()) + "; " + str(OS.get_model_name())))
@@ -131,3 +155,53 @@ func deep_boot_info() -> void:
 	if debug: print(" ")
 	
 	# ---
+
+
+func parse_boot_args() -> Error:
+	state = APP_STATES.PARSE_BOOT_ARGS
+	
+	var engine_args:PackedStringArray = OS.get_cmdline_args()
+	var user_args:PackedStringArray = OS.get_cmdline_user_args()
+	
+	#var window: Window = Window.new()
+	#window.force_native = true
+	#
+	#await Make.child(window, get_window())
+	#return OK
+	
+	var os: String = OS.get_name()
+	if os != "Windows" and os != "Linux": warn("not supported on this operating system!"); return ERR_SKIP
+	
+	
+	
+	var args: PackedStringArray = engine_args
+	for arg in user_args:
+		if not args.has(arg): args.append(arg)
+	
+	
+	
+	if args.has("dd"): deep_debug = true
+	
+	chatd(os)
+	chatd(str("engine args: " + str(engine_args)))
+	chatd(str("user args: " + str(user_args)))
+	#
+	if args.has("quit"): return ERR_SKIP
+	#var is_main_instance:bool = true
+	#
+	#if args.has("is_sub"): is_main_instance = false
+	
+	if args.has("loader"):
+		is_loader_instance = true
+		load_tracker = LoadTracker.new()
+		load_tracker.worker_started(1)
+		pre_load.emit()
+		if ui:
+			if ui_subduing:
+				await ui_mercy
+		return OK
+	
+	return await _parse_boot_args(engine_args, user_args)
+
+
+func _parse_boot_args(_engine_args:PackedStringArray, _user_args:PackedStringArray) -> Error: return OK

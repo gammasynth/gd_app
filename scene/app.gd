@@ -5,18 +5,9 @@ class_name App
 
 #signal core_system_event(event_name:String, event_text:String, event_importance:int)
 
-signal app_starting
-
-signal pre_load
-
-signal ui_mercy
 
 static var app : App = null
 
-
-@export var ui_scene_path: String = ""#res://src/scene/ui/main_ui.tscn
-static var ui:Control = null# This needs to be an AppUI node, if using GUI for this App.
-var ui_subduing:bool = false
 
 @export var debug_database : bool = false
 @export var registry_system: bool = false
@@ -28,8 +19,9 @@ static var unique_id_count : int = 0
 
 var started: bool = false
 
-static var load_tracker: LoadTracker
 
+
+var framework_worker: AppFrameworkWorker = null
 
 func _initialized() -> void:
 	if app: push_error("No, only use one App.gd based node.")
@@ -37,6 +29,9 @@ func _initialized() -> void:
 	session_seed = randi()
 	game_seed = randi()
 	seed(0)
+	
+	db.persona = title
+	print_rich(Text.color(title, Text.COLORS.cyan))
 	
 	track_device_app()
 	
@@ -55,20 +50,9 @@ func _pre_app_start() -> Error:
 
 
 
-func parse_boot_args() -> Error:
-	state = APP_STATES.PARSE_BOOT_ARGS
-	
-	var engine_args:PackedStringArray = OS.get_cmdline_args()
-	var user_args:PackedStringArray = OS.get_cmdline_user_args()
-	
-	
-	return await _parse_boot_args(engine_args, user_args)
-
-
-func _parse_boot_args(_engine_args:PackedStringArray, _user_args:PackedStringArray) -> Error: return OK
-
-
 func _welcome_new_user() -> void: return
+
+func _update_dependencies() -> Error: return OK
 
 func _pre_start() -> Error:
 	
@@ -95,6 +79,18 @@ func _pre_start() -> Error:
 			close()
 			return OK
 	
+	if show_boot_info:
+		deep_boot_info()
+		print(" ")
+	
+	if not framework_worker:
+		framework_worker = await AppFrameworkWorker.new()
+		add_child(framework_worker)
+		if not framework_worker.is_node_ready(): await framework_worker.ready
+	
+	var dep:Error = await _update_dependencies()
+	if dep != OK: return dep
+	
 	# begin app
 	
 	state = APP_STATES.BOOT
@@ -107,15 +103,11 @@ func _pre_start() -> Error:
 		
 	print(" ")
 	
-	if show_boot_info:
-		deep_boot_info()
-		print(" ")
-	
 	if first_run: await _welcome_new_user()
 	# setup ui, if using
 	
 	await _pre_app_start()
-	app_starting.emit()
+	#app_starting.emit()
 	
 	if ui:
 		if ui_subduing:

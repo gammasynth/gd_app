@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dyq8yrg80brnx"]
+
+[ext_resource type="Script" uid="uid://45xxd33t7t3o" path="res://lib/gd_app/scene/prefab/app_framework_worker.gd" id="1_3p7nk"]
+
+[node name="AppFrameworkWorker" type="Node"]
+script = ExtResource("1_3p7nk")
