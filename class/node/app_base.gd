@@ -183,8 +183,24 @@ func parse_boot_args() -> Error:
 	if args.has("dd"): deep_debug = true
 	
 	chatd(os)
-	chatd(str("engine args: " + str(engine_args)))
-	chatd(str("user args: " + str(user_args)))
+	chatd(str("engine args: "))
+	for arg in engine_args:
+		if arg is String:
+			if arg.begins_with("uid://"):
+				var uid:int = ResourceUID.text_to_id(arg)
+				
+				if ResourceUID.has_id(uid):
+					var uid_path:String = ResourceUID.get_id_path(uid)
+					chatd(arg)
+					arg = str("[from UID:] " + uid_path)
+		chatd(arg)
+	
+	chatd(" - ")
+	chatd(str("user args: "))
+	for arg in user_args:
+		chatd(arg)
+	
+	chatd(" - ")
 	#
 	if args.has("quit"): return ERR_SKIP
 	#var is_main_instance:bool = true
