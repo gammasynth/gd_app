@@ -121,7 +121,7 @@ func _pre_start() -> Error:
 	# setup ui, if using
 	
 	await _pre_app_start()
-	#app_starting.emit()
+	app_starting.emit()
 	
 	if ui:
 		if ui_subduing:
