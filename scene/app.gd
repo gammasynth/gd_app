@@ -19,6 +19,7 @@ static var unique_id_count : int = 0
 
 var started: bool = false
 
+var related_window_pids:Array[int] = []
 
 
 var framework_worker: AppFrameworkWorker = null
@@ -42,8 +43,17 @@ func _app_initialized() -> void:
 
 
 func _ready_up() -> Error:
-	get_window().ready.connect(start)
+	#get_window().ready.connect(start)
+	#ready.connect(start)
+	
+	if not get_window().is_node_ready():
+		await get_window().ready
+	
+	await start()
+	
 	return OK#await start()
+
+
 
 func _pre_app_start() -> Error: 
 	return OK
@@ -89,7 +99,11 @@ func _pre_start() -> Error:
 		if not framework_worker.is_node_ready(): await framework_worker.ready
 	
 	var dep:Error = await _update_dependencies()
-	if dep != OK: return dep
+	if dep == OK: pass
+	else:
+		if dep == ERR_SKIP:
+			force_close()
+			return OK
 	
 	# begin app
 	
@@ -199,25 +213,42 @@ static func get_unique_id() -> int:
 	return rng.randi()
 
 
+static func force_close() -> void:
+	close(true)
 
-
-static func close() -> void:
+static func close(forced:bool=false) -> void:
 	
-	state = APP_STATES.QUERY
-	# query_type = type_quit ~?
-	# add close query confirm here before close code below
-	
-	state = APP_STATES.CLOSING
-	
-	
-	if ui:
-		ui.queue_free()
-	
-	await app.get_tree().process_frame
-	
-	if app.registry:
-		app.registry.queue_free()
-	
-	await app.get_tree().process_frame
-	
-	app.get_tree().quit()
+	if forced:
+		state = APP_STATES.CLOSING
+		
+		for pid in app.related_window_pids:
+			OS.kill(pid)
+		app.related_window_pids.clear()
+		
+		
+		app.get_tree().quit()
+		
+	else:
+		
+		state = APP_STATES.QUERY
+		# query_type = type_quit ~?
+		# add close query confirm here before close code below
+		
+		state = APP_STATES.CLOSING
+		
+		
+		if ui:
+			ui.queue_free()
+		
+		await app.get_tree().process_frame
+		
+		if app.registry:
+			app.registry.queue_free()
+		
+		for pid in app.related_window_pids:
+			OS.kill(pid)
+		app.related_window_pids.clear()
+		
+		await app.get_tree().process_frame
+		
+		app.get_tree().quit()

@@ -3,7 +3,7 @@ extends DatabaseNode
 ## AppBase is a Foundational class with the skeleton of properties App class may use.
 class_name AppBase
 
-#signal app_starting
+signal app_starting
 
 signal pre_load
 signal ui_mercy
@@ -207,15 +207,15 @@ func parse_boot_args() -> Error:
 	#
 	#if args.has("is_sub"): is_main_instance = false
 	
-	if args.has("loader"):
-		is_loader_instance = true
-		load_tracker = LoadTracker.new()
-		load_tracker.worker_started(1)
-		pre_load.emit()
-		if ui:
-			if ui_subduing:
-				await ui_mercy
-		return OK
+	#if args.has("loader"):
+		#is_loader_instance = true
+		#load_tracker = LoadTracker.new()
+		#load_tracker.worker_started(1)
+		#pre_load.emit()
+		#if ui:
+			#if ui_subduing:
+				#await ui_mercy
+		#return OK
 	
 	return await _parse_boot_args(engine_args, user_args)
 

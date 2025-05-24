@@ -13,6 +13,7 @@ var download_path: String = ""
 var download_save_path:String = ""
 var download_failed: bool = false
 
+var download_percentage: int = 0
 
 func _ready_up() -> Error: 
 	if not http:
@@ -24,18 +25,24 @@ func _ready_up() -> Error:
 func validate_dependency(link:String, path:String, dependency_name:String, dependant:String=App.app.db.persona, file_name_cleaner:String="") -> Error:
 	DirAccess.make_dir_recursive_absolute(File.get_folder(path, true))
 	if not FileAccess.file_exists(path):
-		chat(str(dependant + " is lacking dependency: " + dependency_name + "!"))
-		var inst := OS.create_instance(["loader", "is_sub"])
-		chatd("subloader ui: " + str(inst))
+		chatf(str(dependant + " is lacking dependency: " + dependency_name + "!"))
+		#var inst := OS.create_instance(["loader"])
+		#App.app.related_window_pids.append(inst)
+		#chatd("subloader ui: " + str(inst))
 		
 		var dl_err:Error = await download_dependency(link, path, dependency_name, dependant, file_name_cleaner)
-		if not dl_err != OK: chat(str(dependency_name + " | Dependency Download Error:" + error_string(dl_err)))
-		OS.kill(inst)
+		if not dl_err != OK: warn(str(dependency_name + " | Dependency Download Error:" + error_string(dl_err)))
+		
+		if downloading_file: 
+			await download_finished
+		#if App.app.related_window_pids.has(inst): 
+		#	App.app.related_window_pids.erase(inst)
+		#OS.kill(inst)
 	return OK
 
 
 func download_dependency(link:String, path:String, dependency_name:String, dependant:String="grom", file_name_cleaner:String="") -> Error:
-	chat("downloading " + dependency_name + " for " + dependant + "...")
+	chatf("downloading " + dependency_name + " for " + dependant + "...")
 	if not download(link, path): warn("download " + dependency_name + " error!"); return ERR_SKIP
 	if downloading_file: 
 		
@@ -52,16 +59,23 @@ func download_dependency(link:String, path:String, dependency_name:String, depen
 		
 		new_path = str(new_path + ".zip")
 		DirAccess.copy_absolute(path, new_path)
-		if not FileAccess.file_exists(new_path): warn("cant rename " + dependency_name + " zip!"); return ERR_SKIP
+		if not FileAccess.file_exists(new_path): 
+			warn("cant rename " + dependency_name + " zip!")
+			return ERR_SKIP
 		
 		chat("unzipping " + dependency_name + "...")
 		
 		var zip = ZIPReader.new()
-		print(new_path)
-		print(FileAccess.file_exists(new_path))
+		chat(str("unzipping file: " + new_path))
+		if not FileAccess.file_exists(new_path): 
+			warn("zip not a file?")
+		
 		var z: Error = zip.open(new_path)
-		print(error_string(z))
-		if z != OK: warn("unzip " + dependency_name + " error!"); return ERR_SKIP
+		#chat(str("unzipped file: " + str(error_string(z)))
+		
+		if true:
+			warn("unzip " + dependency_name + " error!")
+			return ERR_SKIP
 		
 		var zipped: PackedStringArray = zip.get_files()
 		if zipped.size() == 0:
@@ -114,11 +128,17 @@ func _process(_delta: float) -> void:
 		var downloadedBytes = http.get_downloaded_bytes()
 		
 		var percent = int(downloadedBytes*100/bodySize)
-		print(str(percent) + " downloaded")
+		if percent > download_percentage:
+			download_percentage = percent
+			print(str(percent) + " % downloaded...")
 		
-		#OS.set_environment("grom_dl_size", str(bodySize))
-		#OS.set_environment("grom_dl_bytes", str(downloadedBytes))
-		#OS.set_environment("grom_dl_bytes", str(downloadedBytes))
+		if percent == 100:
+			downloading_file = false
+			download_finished.emit()
+		
+		#OS.set_environment("g_worker_dl_size", str(bodySize))
+		#OS.set_environment("g_worker_dl_bytes", str(downloadedBytes))
+		#OS.set_environment("g_worker_dl_percent", str(percent))
 
 
 
