@@ -12,7 +12,12 @@ static var app : App
 @export var debug_database : bool = false
 @export var registry_system: bool = false
 
-
+func _set_debug(b:bool) -> void: 
+	db.debug = b
+	db.debug_all = b
+func _set_deep_debug(b:bool) -> void: 
+	db.deep_debug = b
+	db.deep_debug_all = b
 
 
 func _initialized() -> void:

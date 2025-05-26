@@ -2,6 +2,10 @@ extends AppProgram
 
 class_name AppExtendable
 
+signal action_recorded
+signal action_undone
+signal action_redone
+
 var registry: Registry
 
 var framework_worker: AppFrameworkWorker = null
@@ -61,11 +65,14 @@ func setup_actions_handler() -> Error:
 static func undo(by_amount:int=1):
 	var a:AppExtendable = instance as AppExtendable
 	a.actions_handler.undo(by_amount)
+	a.action_undone.emit()
 
 static func redo(by_amount:int=1):
 	var a:AppExtendable = instance as AppExtendable
 	a.actions_handler.redo(by_amount)
+	a.action_redone.emit()
 
 static func record_action(action:AppAction):
 	var a:AppExtendable = instance as AppExtendable
 	a.actions_handler.record_action(action)
+	a.action_recorded.emit()
