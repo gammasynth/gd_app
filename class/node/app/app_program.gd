@@ -1,80 +1,6 @@
-extends DatabaseNode
+extends AppBase
 
-## AppBase is a Foundational class with the skeleton of properties App class may use.
-class_name AppBase
-
-signal app_starting
-
-signal pre_load
-signal ui_mercy
-
-## An App can be in one of multiple APP_STATES at once.
-enum APP_STATES {
-	INIT, 
-	DEVICE_START_SESSION,
-	PARSE_BOOT_ARGS, 
-	BOOT, 
-	REGISTRY_BOOT, 
-	LOADING, 
-	APP_START_SESSION,
-	RUNNING, 
-	QUERY, 
-	CLOSING
-	}
-
-## The current state from APP_STATES that an App is in, at a time.
-static var state : APP_STATES = APP_STATES.INIT
-
-## Reccomended to keep debug_all turned off, unless bugfixing or implementing features.
-static var debug_all:bool = false
-
-## WARNING! Some games may print an absurd amount of statements when this is turned on!
-static var deep_debug_all:bool = false
-
-## Title of software, pulls from project settings. Set title in project settings first.
-static var title: String = ProjectSettings.get_setting("application/config/name")
-
-
-## If the program is a game, and not general software.
-@export var is_game : bool = false
-
-## Reccomended to turn on for games, or apps with very nice names.
-@export var show_title_instead_of_product_type:bool = false
-
-## product_type is mostly used for print statements.
-var product_type:String = "app":
-	get:
-		if is_game: product_type = "game"
-		else: product_type = "app"
-		if show_title_instead_of_product_type: product_type = title
-		return product_type
-
-## whether to log deep information about app startup.
-@export var show_boot_info: bool = false
-
-
-@export var focusless_input : bool = false# TODO
-var is_input_allowed: bool = true:
-	get:
-		if focusless_input: return true
-		if get_window().has_focus():
-			is_input_allowed = true
-		else:
-			is_input_allowed = false
-		return is_input_allowed
-
-static var version: String = "0.0.0.1"
-var first_run: bool = true
-@export var mandatory_device_tracking: bool = true
-@export var clear_all_user_files_on_version_update: bool = true
-
-static var is_loader_instance:bool=false
-static var load_tracker: LoadTracker
-
-
-@export var ui_scene_path: String = ""#res://src/scene/ui/main_ui.tscn
-static var ui:Control = null# This needs to be an AppUI node, if using GUI for this App.
-var ui_subduing:bool = false
+class_name AppProgram
 
 
 func get_res_version() -> void:
@@ -82,9 +8,21 @@ func get_res_version() -> void:
 	version = res.get("version")
 
 
+
+static func get_unique_id() -> int:
+	var rng : RandomNumberGenerator = RandomNumberGenerator.new()
+	
+	unique_id_count += 1
+	rng.seed = game_seed + unique_id_count
+	
+	return rng.randi()
+
+
+
 func _get_general_encryption_key() -> String: return str(floor(hash(title)*PI*hash(title)))
 
 func _get_device_track_encryption_key() -> String: return _get_general_encryption_key()
+
 
 
 func track_device_app() -> void:
@@ -220,4 +158,72 @@ func parse_boot_args() -> Error:
 	return await _parse_boot_args(engine_args, user_args)
 
 
+
+
 func _parse_boot_args(_engine_args:PackedStringArray, _user_args:PackedStringArray) -> Error: return OK
+
+
+
+
+func start_app_session() -> Error:
+	state = APP_STATES.DEVICE_START_SESSION
+	return await _start_app_session()
+
+func _start_app_session() -> Error:
+	return OK
+
+
+# - - -
+
+# App Operation
+
+# - - -
+
+
+static func force_close() -> void:
+	close(true)
+
+static func reboot(forced:bool=false) -> void:
+	close(forced, true)
+
+static func close(forced:bool=false, do_reboot:bool=false) -> void:
+	
+	if forced:
+		state = APP_STATES.CLOSING
+		
+		for pid in instance.related_window_pids:
+			OS.kill(pid)
+		instance.related_window_pids.clear()
+		
+		if do_reboot:
+			instance.get_tree().reload_current_scene()
+		else:
+			instance.get_tree().quit()
+		
+	else:
+		
+		state = APP_STATES.QUERY
+		# query_type = type_quit ~?
+		# add close query confirm here before close code below
+		
+		state = APP_STATES.CLOSING
+		
+		
+		if ui:
+			ui.queue_free()
+		
+		await instance.get_tree().process_frame
+		
+		if instance.registry:
+			instance.registry.queue_free()
+		
+		for pid in instance.related_window_pids:
+			OS.kill(pid)
+		instance.related_window_pids.clear()
+		
+		await instance.get_tree().process_frame
+		
+		if do_reboot:
+			instance.get_tree().reload_current_scene()
+		else:
+			instance.get_tree().quit()

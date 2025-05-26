@@ -1,4 +1,4 @@
-extends AppBase
+extends AppExtendable
 ## App is a base Node class that can be extended from for a app's root Node, or used as a Singleton (AutoLoad).
 ## App should allow easy interaction between APIs in an application, and streamline SceneTree workflow.
 class_name App
@@ -6,27 +6,20 @@ class_name App
 #signal core_system_event(event_name:String, event_text:String, event_importance:int)
 
 
-static var app : App = null
+static var app : App
 
 
 @export var debug_database : bool = false
 @export var registry_system: bool = false
-var registry: Registry
-
-static var session_seed : int = 0
-static var game_seed : int = 0
-static var unique_id_count : int = 0
-
-var started: bool = false
-
-var related_window_pids:Array[int] = []
 
 
-var framework_worker: AppFrameworkWorker = null
+
 
 func _initialized() -> void:
-	if app: push_error("No, only use one App.gd based node.")
+	if app or instance: push_error("No, only use one App.gd based node.")
 	app = self
+	instance = self
+	
 	session_seed = randi()
 	game_seed = randi()
 	seed(0)
@@ -54,15 +47,15 @@ func _ready_up() -> Error:
 	return OK#await start()
 
 
-
 func _pre_app_start() -> Error: 
 	return OK
 
 
 
+
 func _welcome_new_user() -> void: return
 
-func _update_dependencies() -> Error: return OK
+
 
 func _pre_start() -> Error:
 	
@@ -93,17 +86,10 @@ func _pre_start() -> Error:
 		deep_boot_info()
 		print(" ")
 	
-	if not framework_worker:
-		framework_worker = await AppFrameworkWorker.new()
-		add_child(framework_worker)
-		if not framework_worker.is_node_ready(): await framework_worker.ready
+	var framework_err:Error = await setup_app_framework()
+	if framework_err != OK: return framework_err
 	
-	var dep:Error = await _update_dependencies()
-	if dep == OK: pass
-	else:
-		if dep == ERR_SKIP:
-			force_close()
-			return OK
+	await setup_actions_handler()
 	
 	# begin app
 	
@@ -132,32 +118,11 @@ func _pre_start() -> Error:
 	# setup registry, if using
 	
 	if registry_system:
-		state = APP_STATES.REGISTRY_BOOT
-		await get_tree().create_timer(0.01).timeout
-		print_rich((str("Preparing " + product_type + " files...")))
-		
-		
-		if not registry:
-			registry = Registry.new("Registry")
-			await Make.child(registry, self)
-			registry.load_tracker = LoadTracker.new()
-			registry.load_tracker.finished.connect(func(): registry.load_tracker = null)
-		
-		load_tracker = registry.load_tracker
-		load_tracker.finished.connect(func(): load_tracker = null)
-		
-		pre_load.emit()
-		if ui:
-			if ui_subduing:
-				await ui_mercy
-		
-		registry.boot_load = true
-		
-		await registry.start()
+		await setup_registry_system()
 		
 		if debug_database: 
 			var debug_db: Window
-			if registry_system: debug_db = Registry.pull("debug", "debug_database_window.tscn")
+			debug_db = Registry.pull("debug", "debug_database_window.tscn")
 			
 			if not debug_db: debug_db = load("res://core/scene/prefab/debug/debug_database_window.tscn").instantiate()
 			await Make.child(debug_db, self)
@@ -179,18 +144,13 @@ func _pre_start() -> Error:
 	return OK
 
 
+
 #func _post_start() -> Error: 
 	#return OK
 #
 #func _finish_tick() -> Error:
 	#return OK
 
-func start_app_session() -> Error:
-	state = APP_STATES.DEVICE_START_SESSION
-	return await _start_app_session()
-
-func _start_app_session() -> Error:
-	return OK
 
 
 #static func system_event(event_name:String, event_text:String, event_importance:int=0) -> void:
@@ -201,54 +161,3 @@ func _start_app_session() -> Error:
 		#print(str(event_importance) + " | " + event_name + " | " + event_text)
 	#if instance: 
 		#instance.core_system_event.emit(event_name, event_text, event_importance);
-
-
-
-static func get_unique_id() -> int:
-	var rng : RandomNumberGenerator = RandomNumberGenerator.new()
-	
-	unique_id_count += 1
-	rng.seed = game_seed + unique_id_count
-	
-	return rng.randi()
-
-
-static func force_close() -> void:
-	close(true)
-
-static func close(forced:bool=false) -> void:
-	
-	if forced:
-		state = APP_STATES.CLOSING
-		
-		for pid in app.related_window_pids:
-			OS.kill(pid)
-		app.related_window_pids.clear()
-		
-		
-		app.get_tree().quit()
-		
-	else:
-		
-		state = APP_STATES.QUERY
-		# query_type = type_quit ~?
-		# add close query confirm here before close code below
-		
-		state = APP_STATES.CLOSING
-		
-		
-		if ui:
-			ui.queue_free()
-		
-		await app.get_tree().process_frame
-		
-		if app.registry:
-			app.registry.queue_free()
-		
-		for pid in app.related_window_pids:
-			OS.kill(pid)
-		app.related_window_pids.clear()
-		
-		await app.get_tree().process_frame
-		
-		app.get_tree().quit()

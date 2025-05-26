@@ -18,8 +18,8 @@ var download_percentage: int = 0
 func _ready_up() -> Error: 
 	if not http:
 		http = HTTPRequest.new()
-		add_child(http)
-		if not http.is_node_ready(): await http.ready
+		http.name = "http_dep_downloader"
+		await Make.child(http, self)
 	return OK
 
 func validate_dependency(link:String, path:String, dependency_name:String, dependant:String=App.app.db.persona, file_name_cleaner:String="") -> Error:
