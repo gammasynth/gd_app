@@ -43,6 +43,7 @@ func validate_dependency(link:String, path:String, dependency_name:String, depen
 
 func download_dependency(link:String, path:String, dependency_name:String, dependant:String="grom", file_name_cleaner:String="") -> Error:
 	chatf("downloading " + dependency_name + " for " + dependant + "...")
+	db.persona = str(dependant + " :> " + dependency_name)
 	if not download(link, path): warn("download " + dependency_name + " error!"); return ERR_SKIP
 	if downloading_file: 
 		
@@ -130,7 +131,7 @@ func _process(_delta: float) -> void:
 		var percent = int(downloadedBytes*100/bodySize)
 		if percent > download_percentage:
 			download_percentage = percent
-			print(str(percent) + " % downloaded...")
+			chatf(str(str(percent) + " % downloaded..."))
 		
 		if percent == 100:
 			downloading_file = false

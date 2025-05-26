@@ -28,10 +28,10 @@ enum APP_STATES {
 static var state : APP_STATES = APP_STATES.INIT
 
 ## Reccomended to keep debug_all turned off, unless bugfixing or implementing features.
-static var debug_all:bool = false
+#static var debug_all:bool = false
 
 ## WARNING! Some games may print an absurd amount of statements when this is turned on!
-static var deep_debug_all:bool = false
+#static var deep_debug_all:bool = false
 
 ## Title of software, pulls from project settings. Set title in project settings first.
 static var title: String = ProjectSettings.get_setting("application/config/name")

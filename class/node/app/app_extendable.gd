@@ -31,7 +31,7 @@ func setup_app_framework() -> Error:
 func setup_registry_system() -> Error:
 	state = APP_STATES.REGISTRY_BOOT
 	await get_tree().create_timer(0.01).timeout
-	print_rich((str("Preparing " + product_type + " files...")))
+	chatf((str("Preparing " + product_type + " files...")))
 	
 	
 	if not registry:

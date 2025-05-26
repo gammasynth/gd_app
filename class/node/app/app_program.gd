@@ -39,7 +39,7 @@ func track_device_app() -> void:
 	
 	if not FileAccess.file_exists("user://version.json"):
 		if mandatory_device_tracking: 
-			print_rich("APP LACKS FILE ACCESS PERMISSIONS IN OPERATING SYSTEM, OR APP FILES WERE TAMPERED WITH. APP USAGE DENIED.")
+			warn("APP LACKS FILE ACCESS PERMISSIONS IN OPERATING SYSTEM, OR APP FILES WERE TAMPERED WITH. APP USAGE DENIED.")
 			get_tree().quit()
 			return
 		else:
@@ -64,33 +64,33 @@ func deep_boot_info() -> void:
 	
 	#chat(str("engine args: " + str(OS.get_cmdline_args())))
 	#chat(str("user args: " + str(OS.get_cmdline_user_args())))
-	if debug: print(" ")
+	chatf(" ")
 	
 	#chat(str("omni is running on: " + str(OS.get_distribution_name()) + "; " + str(OS.get_model_name())))
-	print_rich(Text.color(str(product_type + " is running on: " + str(OS.get_distribution_name())), Text.COLORS.white))
-	print(" ")
+	chatf(Text.color(str(product_type + " is running on: " + str(OS.get_distribution_name())), Text.COLORS.white))
+	chatf(" ")
 	
 	# ---
 	
-	chat(str("model: " + str(OS.get_model_name())))
-	chat(str("cpu: " + str(OS.get_processor_name())))
-	chat(str("cores: " + str(OS.get_processor_count())))
-	if debug: print(" ")
+	chatf(str("model: " + str(OS.get_model_name())))
+	chatf(str("cpu: " + str(OS.get_processor_name())))
+	chatf(str("cores: " + str(OS.get_processor_count())))
+	chatf(" ")
 	
 	
-	chat(str("memory: " + str(OS.get_memory_info())))
-	if debug: print(" ")
+	chatf(str("memory: " + str(OS.get_memory_info())))
+	chatf(" ")
 	
-	chat(str("locale: " + str(OS.get_locale())))
-	if debug: print(" ")
+	chatf(str("locale: " + str(OS.get_locale())))
+	chatf(" ")
 	
 	# ---
 	
-	chat(str("data dir: " + OS.get_data_dir()))
-	chat(str("user data dir: " + OS.get_user_data_dir()))
-	chat(str("config dir: " + str(OS.get_config_dir())))
-	chat(str("cache dir: " + str(OS.get_cache_dir())))
-	if debug: print(" ")
+	chatf(str("data dir: " + OS.get_data_dir()))
+	chatf(str("user data dir: " + OS.get_user_data_dir()))
+	chatf(str("config dir: " + str(OS.get_config_dir())))
+	chatf(str("cache dir: " + str(OS.get_cache_dir())))
+	chatf(" ")
 	
 	# ---
 

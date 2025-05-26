@@ -7,7 +7,8 @@ class_name App
 
 
 static var app : App
-
+static var debug_all:bool = false
+static var deep_debug_all:bool = false
 
 @export var debug_database : bool = false
 @export var registry_system: bool = false
@@ -29,10 +30,7 @@ func _initialized() -> void:
 	game_seed = randi()
 	seed(0)
 	
-	db.persona = title
-	print_rich(Text.color(title, Text.COLORS.cyan))
 	
-	track_device_app()
 	
 	_app_initialized()
 
@@ -70,14 +68,18 @@ func _pre_start() -> Error:
 	db.deep_debug_toggled.connect(func(b:bool): deep_debug_all = b)
 	deep_debug = deep_debug
 	
-	print_rich(Text.color("[gammasynth]", Text.COLORS.green))
-	print(" ")
-	
 	
 	if not ui_scene_path.is_empty(): 
-		chatd("loading AppUI from path...")
 		ui = load(ui_scene_path).instantiate()
 		await Make.child(ui, get_window())
+	
+	db.persona = title
+	chatf(str("^&" + title), Text.COLORS.cyan)
+	
+	chatf("^&[gammasynth]", Text.COLORS.green)
+	chatf(" ")
+	
+	track_device_app()
 	
 	
 	var args_err: Error = await parse_boot_args()
@@ -89,7 +91,7 @@ func _pre_start() -> Error:
 	
 	if show_boot_info:
 		deep_boot_info()
-		print(" ")
+		chatf(" ")
 	
 	var framework_err:Error = await setup_app_framework()
 	if framework_err != OK: return framework_err
@@ -100,13 +102,13 @@ func _pre_start() -> Error:
 	
 	state = APP_STATES.BOOT
 	
-	print_rich((str("Starting " + title + "...")))
+	chatf(str("^&Starting " + title + "..."))
 	
 	chat("debug mode", Text.COLORS.green)
 	if debug_database: 
-		chat("debug database mode", Text.COLORS.green, true)
+		chatf("debug database mode", Text.COLORS.green)
 		
-	print(" ")
+	chatf(" ")
 	
 	if first_run: await _welcome_new_user()
 	# setup ui, if using
@@ -132,12 +134,11 @@ func _pre_start() -> Error:
 			if not debug_db: debug_db = load("res://core/scene/prefab/debug/debug_database_window.tscn").instantiate()
 			await Make.child(debug_db, self)
 		
-		print_rich((str(product_type + " files inititalized!")))
-		#print(" ")
+		chatf(str(product_type + " files inititalized!"))
 	
 	
-	print_rich(Text.color(str(title + " started."), Text.COLORS.cyan))
-	print(" ")
+	chatf(str("^&" + title + " started."), Text.COLORS.cyan)
+	chatf(" ")
 	
 	
 	var app_sesh_err:Error = await start_app_session()
