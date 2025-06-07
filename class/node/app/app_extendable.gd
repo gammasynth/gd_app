@@ -38,7 +38,10 @@ func setup_registry_system() -> Error:
 		registry = Registry.new("Registry")
 		await Make.child(registry, self)
 		registry.load_tracker = LoadTracker.new()
-		registry.load_tracker.finished.connect(func(): registry.load_tracker = null)
+		registry.load_tracker.finished.connect(func(): 
+			if ui and ui.current_loading_screen: 
+				ui.current_loading_screen.queue_free()
+			registry.load_tracker = null)
 	
 	load_tracker = registry.load_tracker
 	load_tracker.finished.connect(func(): load_tracker = null)

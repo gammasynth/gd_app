@@ -93,16 +93,22 @@ func _pre_start() -> Error:
 		deep_boot_info()
 		chatf(" ")
 	
+	# setup ui, if using
+	await _pre_app_start()
+	app_starting.emit()
+	
+	if ui:
+		if ui_subduing:
+			await ui_mercy
+	
 	var framework_err:Error = await setup_app_framework()
 	if framework_err != OK: return framework_err
 	
 	await setup_actions_handler()
 	
 	# begin app
-	
-	state = APP_STATES.BOOT
-	
 	chatf(str("^&Starting " + title + "..."))
+	state = APP_STATES.BOOT
 	
 	chat("debug mode", Text.COLORS.green)
 	if debug_database: 
@@ -111,16 +117,6 @@ func _pre_start() -> Error:
 	chatf(" ")
 	
 	if first_run: await _welcome_new_user()
-	# setup ui, if using
-	
-	await _pre_app_start()
-	app_starting.emit()
-	
-	if ui:
-		if ui_subduing:
-			await ui_mercy
-	
-	
 	
 	# setup registry, if using
 	
