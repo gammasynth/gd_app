@@ -146,6 +146,13 @@ func _pre_start() -> Error:
 	return OK
 
 
+## If extending App with a new class and overriding the _unhandled_input function, make sure to call _app_unhandled_input function.
+func _unhandled_input(event: InputEvent) -> void:
+	_app_unhandled_input(event)
+
+func _app_unhandled_input(event: InputEvent) -> void:
+	_app_extendable_unhandled_input(event)
+
 
 #func _post_start() -> Error: 
 	#return OK

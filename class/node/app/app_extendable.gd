@@ -65,6 +65,12 @@ func setup_actions_handler() -> Error:
 	return OK
 
 
+func _app_extendable_unhandled_input(event: InputEvent) -> void:
+	if event.is_action("ui_redo") and event.is_pressed():
+		redo()
+	if event.is_action("ui_undo") and event.is_pressed():
+		undo()
+
 static func undo(by_amount:int=1):
 	var a:AppExtendable = instance as AppExtendable
 	a.actions_handler.undo(by_amount)
