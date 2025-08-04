@@ -1,4 +1,4 @@
-extends AppExtendable
+extends AppNetworked
 ## App is a base Node class that can be extended from for a app's root Node, or used as a Singleton (AutoLoad).
 ## App should allow easy interaction between APIs in an application, and streamline SceneTree workflow.
 class_name App

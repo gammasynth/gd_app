@@ -11,6 +11,8 @@ var registry: Registry
 var framework_worker: AppFrameworkWorker = null
 var actions_handler: AppActionsHandler = null
 
+var alert_system: AlertSystem = null
+
 func _update_dependencies() -> Error: return OK
 
 func setup_app_framework() -> Error:
@@ -25,6 +27,12 @@ func setup_app_framework() -> Error:
 		if dep == ERR_SKIP:
 			force_close()
 			return ERR_SKIP
+	
+	if not alert_system:
+		alert_system = await  AlertSystem.new()
+		alert_system.name = "app_alert_system"
+		await Make.child(alert_system, self)
+	
 	return OK
 
 
