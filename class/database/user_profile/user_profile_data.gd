@@ -1,10 +1,20 @@
 extends Database
 class_name UserProfileData
 
-
-var profile_file_path = ""
 var username:String = "user"
+var profile_file_path = ""
 
+var user_icon: ImageTexture = null:
+	get = get_user_icon, set = set_user_icon
+
+
+func get_user_icon() -> ImageTexture: return _get_user_icon()
+
+func _get_user_icon() -> ImageTexture: return user_icon
+
+func set_user_icon(icon:ImageTexture) -> void: _set_user_icon(icon)
+
+func _set_user_icon(icon:ImageTexture) -> void: user_icon = icon
 
 ### Call this function to serialize the live instance of UserProfileData to Dictionary.
 #func get_as_dict() -> Dictionary:

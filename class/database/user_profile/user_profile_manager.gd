@@ -120,7 +120,7 @@ static func delete_local_profile(local_profile:UserProfileData):
 					#OS.move_to_trash(ProjectSettings.globalize_path(other_file_to_remove))
 					#print("Deleted file: " + file_name)
 				#file_name = dir.get_next()
-		AlertManager.create_warning("Profile deleted!", str("The profile named " + local_profile.username + " was deleted from the filesystem."))
+		AlertSystem.create_warning("Profile deleted!", str("The profile named " + local_profile.username + " was deleted from the filesystem."))
 
 		
 	else:
@@ -129,10 +129,10 @@ static func delete_local_profile(local_profile:UserProfileData):
 
 
 static func profile_saving_error():
-	AlertManager.file_saving_error()
+	AlertSystem.file_saving_error()
 
 static func profile_loading_error():
-	AlertManager.file_loading_error()
+	AlertSystem.file_loading_error()
 
 static func profile_deletion_error():
-	AlertManager.file_deletion_error()
+	AlertSystem.file_deletion_error()

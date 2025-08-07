@@ -10,9 +10,6 @@ static var app : App
 static var debug_all:bool = false
 static var deep_debug_all:bool = false
 
-@export var debug_database : bool = false
-@export var registry_system: bool = false
-
 func _set_debug(b:bool) -> void: 
 	db.debug = b
 	db.debug_all = b
@@ -101,10 +98,14 @@ func _pre_start() -> Error:
 		if ui_subduing:
 			await ui_mercy
 	
+	
+	
 	var framework_err:Error = await setup_app_framework()
 	if framework_err != OK: return framework_err
 	
-	await setup_actions_handler()
+	#var networkable_err:Error = await setup_networkable_app()
+	#if networkable_err != OK: return networkable_err
+	
 	
 	# begin app
 	chatf(str("^&Starting " + title + "..."))
@@ -116,26 +117,10 @@ func _pre_start() -> Error:
 		
 	chatf(" ")
 	
-	if first_run: await _welcome_new_user()
-	
-	# setup registry, if using
-	
-	if registry_system:
-		await setup_registry_system()
-		
-		if debug_database: 
-			var debug_db: Window
-			debug_db = Registry.pull("debug", "debug_database_window.tscn")
-			
-			if not debug_db: debug_db = load("res://core/scene/prefab/debug/debug_database_window.tscn").instantiate()
-			await Make.child(debug_db, self)
-		
-		chatf(str(product_type + " files inititalized!"))
-	
-	
 	chatf(str("^&" + title + " started."), Text.COLORS.cyan)
 	chatf(" ")
 	
+	if first_run: await _welcome_new_user()
 	
 	var app_sesh_err:Error = await start_app_session()
 	check("start_app_session", app_sesh_err)
