@@ -11,6 +11,9 @@ var undone_action_history: Dictionary[int, AppAction] = {}
 var undone_action_count: int :
 	get: return undone_action_history.size()
 
+func clear_all_history() -> void:
+	action_history.clear()
+	undone_action_history.clear()
 
 func record_action(action:AppAction):
 	undone_action_count = 0
