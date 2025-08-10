@@ -26,6 +26,10 @@ func _get_device_track_encryption_key() -> String: return _get_general_encryptio
 
 
 func track_device_app() -> void:
+	if OS.get_name() == "Web":
+		chatf("App is running in browser, skipping device track!")
+		return
+	
 	state = APP_STATES.DEVICE_START_SESSION
 	
 	get_res_version()
