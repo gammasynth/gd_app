@@ -64,6 +64,9 @@ func track_device_app() -> void:
 
 
 func deep_boot_info() -> void:
+	if OS.get_name() == "Web":
+		chatf("App is running in browser, skipping deep boot info!")
+		return
 	# ---
 	
 	#chat(str("engine args: " + str(OS.get_cmdline_args())))
@@ -100,6 +103,9 @@ func deep_boot_info() -> void:
 
 
 func parse_boot_args() -> Error:
+	if OS.get_name() == "Web":
+		chatf("App is running in browser, skipping parse boot args!")
+		return OK
 	state = APP_STATES.PARSE_BOOT_ARGS
 	
 	var engine_args:PackedStringArray = OS.get_cmdline_args()
@@ -191,7 +197,9 @@ static func reboot(forced:bool=false) -> void:
 	close(forced, true)
 
 static func close(forced:bool=false, do_reboot:bool=false) -> void:
-	
+	if OS.get_name() == "Web":
+		instance.chatf("App is running in browser, can't close!")
+		return
 	if forced:
 		state = APP_STATES.CLOSING
 		

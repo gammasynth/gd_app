@@ -145,3 +145,95 @@ static func record_action(action:AppAction):
 	a.actions_handler.record_action(action)
 	a.action_recorded.emit()
 #endregion
+
+#region Set Image to OS Clipboard
+
+## Special thanks to https://github.com/MewPurPur/GodSVG
+static func copy_image_to_os(img:Image) -> void:
+	match OS.get_name():
+		"Web":
+			copy_image_to_web(img)
+		"Windows":
+			copy_image_to_windows(img)
+		"Linux", "FreeBSD", "NetBSD", "OpenBSD", "BSD":
+			copy_image_to_linux(img)
+		"Android":
+			instance.warn("Copy image not implemented on Android!")
+			# TODO
+
+static func copy_image_to_web(img:Image) -> void:
+	JavaScriptBridge.eval("""
+		window.copyImageToClipboard = (data, mimeType) => {
+			const blob = new Blob([data], { "type": mimeType });
+			console.log(mimeType);
+			navigator.clipboard.write([new ClipboardItem({ [mimeType]: blob })]);
+		}
+	""")
+	var mime_type:String = "image/png"
+	var image_buf := img.save_png_to_buffer()
+	var buf = JavaScriptBridge.create_object("ArrayBuffer", image_buf.size())
+	var data = JavaScriptBridge.create_object("Uint8Array", buf)
+	for i in len(image_buf):
+		data[i] = image_buf[i]
+	JavaScriptBridge.get_interface("window").window.copyImageToClipboard(data, mime_type)
+	AlertSystem.create_alert("Copied Image!", "An image was copied to the OS clipboard.")
+
+static func copy_image_to_windows(img:Image) -> void:
+	var cmd_output:Array = []
+	DirAccess.make_dir_recursive_absolute("user://temp/")
+	var temp_path: String = "user://temp/buffer_image.png"
+	img.save_png(temp_path)
+	var file:FileAccess = FileAccess.open(temp_path, FileAccess.READ)
+	temp_path = file.get_path_absolute()
+	
+	var ps_script: String = """
+			Add-Type -AssemblyName System.Windows.Forms;
+			$bmp = New-Object Drawing.Bitmap('%s');
+			[Windows.Forms.Clipboard]::SetImage($bmp)
+		""" % temp_path.replace('\\', '/')
+	var e := OS.execute("powershell.exe", ["-Command", ps_script], cmd_output, true)
+	if e < 0: instance.warn(str("Failed powershell image copy command! | " + str(cmd_output)))
+	else: AlertSystem.create_alert("Copied Image!", "An image was copied to the OS clipboard.")
+	print(cmd_output)
+
+static func copy_image_to_linux(img:Image) -> void:
+	var cmd_output:Array = []
+	var mime_type:String = "image/png"
+	var display_manager_arr := []
+	OS.execute("echo", ["$XDG_SESSION_TYPE"], display_manager_arr)
+	var using_x11 := "x11" in "".join(display_manager_arr)
+	
+	# System clipboard utils.
+	const x11_utils := ["xclip"]
+	const wayland_utils := ["xclip", "wl-copy"]
+	var usable_utils := (x11_utils if using_x11 else wayland_utils)
+	
+	# Trying every available clipboard util
+	var cmd := []
+	var exit_code := -99
+	var temp_path: String = "user://temp/buffer_image.png"
+	for util in usable_utils:
+		if OS.execute("which", [util]) == 0:
+			match util:
+				"xclip":
+					cmd = ["xclip", "-selection", "clipboard", "-l", "1", "-quiet", "-t", mime_type, "-i", temp_path]
+					exit_code = OS.execute(cmd[0], cmd.slice(1, len(cmd)-1), cmd_output, true)
+				"wl-copy":
+					cmd = ["wl-copy -f -t %s < '%s'" % [mime_type, temp_path]]
+					var dict := OS.execute_with_pipe("bash", ["-c", "".join(cmd)], false)
+					if dict.is_empty():
+						return instance.warn(str("Failed wl-copy image copy command! | " + str(cmd_output)))
+					var stdio: FileAccess = dict.stdio
+					cmd_output.append(stdio.get_pascal_string())
+					stdio.close()
+					var secs_waited := 0
+					while OS.is_process_running(dict.pid):
+						OS.delay_msec(1000)
+						secs_waited += 1
+						if secs_waited > 2:
+							OS.kill(dict.pid)
+							instance.warn("Timed out waiting for wl-copy")
+					exit_code = OS.get_process_exit_code(dict.pid)
+			if exit_code == 0:
+				AlertSystem.create_alert("Copied Image!", "An image was copied to the OS clipboard.")
+#endregion
