@@ -98,7 +98,9 @@ func _pre_start() -> Error:
 		if ui_subduing:
 			await ui_mercy
 	
-	
+	# begin app
+	chatf(str("^&Starting " + title + "..."))
+	state = APP_STATES.BOOT
 	
 	var framework_err:Error = await setup_app_framework()
 	if framework_err != OK: return framework_err
@@ -106,10 +108,6 @@ func _pre_start() -> Error:
 	#var networkable_err:Error = await setup_networkable_app()
 	#if networkable_err != OK: return networkable_err
 	
-	
-	# begin app
-	chatf(str("^&Starting " + title + "..."))
-	state = APP_STATES.BOOT
 	
 	chat("debug mode", Text.COLORS.green)
 	if debug_database: 
