@@ -162,6 +162,7 @@ static func copy_image_to_os(img:Image) -> void:
 			# TODO
 
 static func copy_image_to_web(img:Image) -> void:
+	AlertSystem.create_alert("Copying Image...", "Attempting to copy an Image to the clipboard...")
 	JavaScriptBridge.eval("""
 		window.copyImageToClipboard = (data, mimeType) => {
 			const blob = new Blob([data], { "type": mimeType });
@@ -186,6 +187,8 @@ static func copy_image_to_windows(img:Image) -> void:
 	var file:FileAccess = FileAccess.open(temp_path, FileAccess.READ)
 	temp_path = file.get_path_absolute()
 	
+	
+	AlertSystem.create_alert("Copying Image...", "Attempting to copy an Image to the clipboard...")
 	var ps_script: String = """
 			Add-Type -AssemblyName System.Windows.Forms;
 			$bmp = New-Object Drawing.Bitmap('%s');
@@ -200,6 +203,7 @@ static func copy_image_to_linux(img:Image) -> void:
 	var cmd_output:Array = []
 	var mime_type:String = "image/png"
 	var display_manager_arr := []
+	AlertSystem.create_alert("Copying Image...", "Attempting to copy an Image to the clipboard...")
 	OS.execute("echo", ["$XDG_SESSION_TYPE"], display_manager_arr)
 	var using_x11 := "x11" in "".join(display_manager_arr)
 	
