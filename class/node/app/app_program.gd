@@ -183,6 +183,16 @@ func _start_app_session() -> Error:
 	return OK
 
 
+func window_mouse_entered() -> void:
+	_window_mouse_entered()
+
+func _window_mouse_entered() -> void: pass
+
+func window_mouse_exited() -> void:
+	_window_mouse_exited()
+
+func _window_mouse_exited() -> void: pass
+
 # - - -
 
 # App Operation

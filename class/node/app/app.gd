@@ -42,10 +42,16 @@ func _ready_up() -> Error:
 	if not get_window().is_node_ready():
 		await get_window().ready
 	
+	connect_main_window()
+	
 	await start()
 	
 	return OK#await start()
 
+func connect_main_window() -> void:
+	var window:Window = get_window()
+	window.mouse_entered.connect(window_mouse_entered)
+	window.mouse_exited.connect(window_mouse_exited)
 
 func _pre_app_start() -> Error: 
 	return OK

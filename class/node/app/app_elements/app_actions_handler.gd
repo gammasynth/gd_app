@@ -19,21 +19,21 @@ func record_action(action:AppAction):
 	undone_action_count = 0
 	undone_action_history.clear()
 	#add(action, action_count + 1)
-	action_history[action_count + 1] = action
+	action_history[action_count] = action
 
 func make_action_undone(action:AppAction):
 	action.make_undone()
-	undone_action_history[undone_action_count + 1] = action
+	undone_action_history[undone_action_count] = action
 	action_history.erase(action_history.find_key(action))
 
 func make_action_redone(action:AppAction):
 	action.make_redone()
-	action_history[action_count + 1] = action
+	action_history[action_count] = action
 	undone_action_history.erase(undone_action_history.find_key(action))
 
 func undo(by_amount:int=1):
 	for a in by_amount:
-		var action_int:int = action_count - a
+		var action_int:int = action_count - (a + 1)
 		if not action_history.keys().has(action_int): 
 			warn("unavailable action to undo!")
 			continue
@@ -45,7 +45,7 @@ func undo(by_amount:int=1):
 
 func redo(by_amount:int=1):
 	for a in by_amount:
-		var action_int:int = undone_action_count - a
+		var action_int:int = undone_action_count - (a + 1)
 		if not undone_action_history.keys().has(action_int): 
 			warn("unavailable action to redo!")
 			continue
