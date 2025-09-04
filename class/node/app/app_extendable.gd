@@ -177,7 +177,7 @@ static func copy_image_to_web(img:Image) -> void:
 	for i in len(image_buf):
 		data[i] = image_buf[i]
 	JavaScriptBridge.get_interface("window").window.copyImageToClipboard(data, mime_type)
-	AlertSystem.create_alert("Copied Image!", "An image was copied to the OS clipboard.")
+	AlertSystem.create_alert("Copied Image!", "An image was copied to the OS clipboard.", 3.5, 2.0)
 
 static func copy_image_to_windows(img:Image) -> void:
 	var cmd_output:Array = []
@@ -189,6 +189,7 @@ static func copy_image_to_windows(img:Image) -> void:
 	
 	
 	AlertSystem.create_alert("Copying Image...", "Attempting to copy an Image to the clipboard...")
+	if ui: await RenderingServer.frame_post_draw
 	var ps_script: String = """
 			Add-Type -AssemblyName System.Windows.Forms;
 			$bmp = New-Object Drawing.Bitmap('%s');
@@ -196,7 +197,7 @@ static func copy_image_to_windows(img:Image) -> void:
 		""" % temp_path.replace('\\', '/')
 	var e := OS.execute("powershell.exe", ["-Command", ps_script], cmd_output, true)
 	if e < 0: instance.warn(str("Failed powershell image copy command! | " + str(cmd_output)))
-	else: AlertSystem.create_alert("Copied Image!", "An image was copied to the OS clipboard.")
+	else: AlertSystem.create_alert("Copied Image!", "An image was copied to the OS clipboard.", 3.5, 2.0)
 	print(cmd_output)
 
 static func copy_image_to_linux(img:Image) -> void:
@@ -239,5 +240,5 @@ static func copy_image_to_linux(img:Image) -> void:
 							instance.warn("Timed out waiting for wl-copy")
 					exit_code = OS.get_process_exit_code(dict.pid)
 			if exit_code == 0:
-				AlertSystem.create_alert("Copied Image!", "An image was copied to the OS clipboard.")
+				AlertSystem.create_alert("Copied Image!", "An image was copied to the OS clipboard.", 3.5, 2.0)
 #endregion

@@ -77,9 +77,9 @@ func _pre_start() -> Error:
 		await Make.child(ui, get_window())
 	
 	db.persona = title
-	chatf(str("^&" + title), Text.COLORS.cyan)
+	chatf(str("^&" + title), Text.COLORS.white)
 	
-	chatf("^&[gammasynth]", Text.COLORS.green)
+	chatf("^&[gammasynth]", Text.COLORS.white)
 	chatf(" ")
 	
 	track_device_app()
@@ -99,6 +99,7 @@ func _pre_start() -> Error:
 	# setup ui, if using
 	await _pre_app_start()
 	app_starting.emit()
+	
 	
 	if ui:
 		if ui_subduing:
