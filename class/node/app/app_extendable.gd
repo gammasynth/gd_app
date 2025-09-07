@@ -73,23 +73,28 @@ func setup_registry_system() -> Error:
 	if not registry:
 		registry = Registry.new("Registry")
 		await Make.child(registry, self)
-		registry.load_tracker = LoadTracker.new()
-		registry.load_tracker.finished.connect(func(): 
-			if ui and ui.current_loading_screen: 
-				ui.current_loading_screen.queue_free()
-			registry.load_tracker = null)
 	
-	load_tracker = registry.load_tracker
+	load_tracker = registry.setup_new_load_tracker()
 	load_tracker.finished.connect(func(): load_tracker = null)
-	
+	await get_tree().process_frame
 	pre_load.emit()
+	await get_tree().process_frame
 	if ui:
 		if ui_subduing:
 			await ui_mercy
+	await get_tree().process_frame
+	if ui: await RenderingServer.frame_post_draw
 	
-	registry.boot_load = true
-	
+	#registry.boot_load = true
 	await registry.start()
+	await get_tree().process_frame
+	if ui: await RenderingServer.frame_post_draw
+	
+	await registry.gather_all_content_to_load()
+	await get_tree().process_frame
+	if ui: await RenderingServer.frame_post_draw
+	
+	await registry.boot()
 	
 	if debug_database: 
 		var debug_db: Window
@@ -129,12 +134,19 @@ func _app_extendable_unhandled_input(event: InputEvent) -> void:
 	if event.is_action("ui_undo") and event.is_pressed():
 		undo()
 
-
+static func undo_disabled() -> bool: return not can_undo()
+static func can_undo(by_amount:int=1) -> bool: 
+	var a:AppExtendable = instance as AppExtendable
+	return a.actions_handler.can_undo(by_amount)
 static func undo(by_amount:int=1):
 	var a:AppExtendable = instance as AppExtendable
 	a.actions_handler.undo(by_amount)
 	a.action_undone.emit()
 
+static func redo_disabled() -> bool: return not can_redo()
+static func can_redo(by_amount:int=1) -> bool: 
+	var a:AppExtendable = instance as AppExtendable
+	return a.actions_handler.can_redo(by_amount)
 static func redo(by_amount:int=1):
 	var a:AppExtendable = instance as AppExtendable
 	a.actions_handler.redo(by_amount)

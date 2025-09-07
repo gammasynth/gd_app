@@ -31,6 +31,11 @@ func make_action_redone(action:AppAction):
 	action_history[action_count] = action
 	undone_action_history.erase(undone_action_history.find_key(action))
 
+func can_undo(by_amount:int=1)-> bool:
+	for a in by_amount:
+		var action_int:int = action_count - (a + 1)
+		if not action_history.keys().has(action_int): return false
+	return true
 func undo(by_amount:int=1):
 	for a in by_amount:
 		var action_int:int = action_count - (a + 1)
@@ -43,6 +48,11 @@ func undo(by_amount:int=1):
 			continue
 		make_action_undone(action)
 
+func can_redo(by_amount:int=1)-> bool:
+	for a in by_amount:
+		var action_int:int = undone_action_count - (a + 1)
+		if not undone_action_history.keys().has(action_int): return false
+	return true
 func redo(by_amount:int=1):
 	for a in by_amount:
 		var action_int:int = undone_action_count - (a + 1)
