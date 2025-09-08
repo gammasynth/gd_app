@@ -97,13 +97,12 @@ func _pre_start() -> Error:
 		chatf(" ")
 	
 	# setup ui, if using
-	await _pre_app_start()
+	
 	app_starting.emit()
-	
-	
 	if ui:
 		if ui_subduing:
 			await ui_mercy
+	await _pre_app_start()
 	
 	# begin app
 	chatf(str("^&Starting " + title + "..."))
