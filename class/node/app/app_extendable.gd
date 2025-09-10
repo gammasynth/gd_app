@@ -29,8 +29,6 @@ func setup_app_framework() -> Error:
 	
 	await setup_actions_handler()
 	
-	await setup_registry_system()
-	
 	return OK
 
 
