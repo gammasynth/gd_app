@@ -102,6 +102,7 @@ func _pre_start() -> Error:
 	
 	
 	if not ui_scene_path.is_empty(): 
+
 		ui = load(ui_scene_path).instantiate()
 		await Make.child(ui, get_window())
 	
