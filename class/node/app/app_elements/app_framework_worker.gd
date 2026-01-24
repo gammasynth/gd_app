@@ -48,6 +48,8 @@ func _ready_up() -> Error:
 		await Make.child(http, self)
 	return OK
 
+func download_file(link:String, path:String) -> Error: return await download_dependency(link, path, "file")
+
 func validate_dependency(link:String, path:String, dependency_name:String, dependant:String=App.app.db.persona, file_name_cleaner:String="") -> Error:
 	DirAccess.make_dir_recursive_absolute(File.get_folder(path, true))
 	if not FileAccess.file_exists(path):
@@ -67,7 +69,7 @@ func validate_dependency(link:String, path:String, dependency_name:String, depen
 	return OK
 
 
-func download_dependency(link:String, path:String, dependency_name:String, dependant:String="grom", file_name_cleaner:String="") -> Error:
+func download_dependency(link:String, path:String, dependency_name:String, dependant:String=ProjectSettings.get_setting("application/config/name"), file_name_cleaner:String="") -> Error:
 	chatf("downloading " + dependency_name + " for " + dependant + "...")
 	db.persona = str(dependant + " :> " + dependency_name)
 	if not download(link, path): warn("download " + dependency_name + " error!"); return ERR_SKIP

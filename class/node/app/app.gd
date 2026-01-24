@@ -36,6 +36,10 @@ static var app : App
 static var debug_all:bool = false
 static var deep_debug_all:bool = false
 
+@export var versions_manifest_url : String = ""
+var online_updater_thread : Thread = null
+var online_updater_timer : SceneTreeTimer = null
+
 func _set_debug(b:bool) -> void: 
 	db.debug = b
 	db.debug_all = b
@@ -165,8 +169,62 @@ func _pre_start() -> Error:
 	state = APP_STATES.RUNNING
 	started = true
 	
+	if not versions_manifest_url.is_empty():
+		
+		#make_online_updater_timer()
+		
+		#online_updater_thread = Thread.new()
+		#online_updater_thread.start(check_for_online_update)
+		# TODO there is an issue with the downloader's awaiting a signal within a thread
+		
+		check_for_online_update()
+	
 	return OK
 
+func make_online_updater_timer() -> void:
+	online_updater_timer = get_tree().create_timer(1.0, true, false, true)
+	online_updater_timer.timeout.connect(online_updater_timeout)
+
+func online_updater_timeout() -> void:
+	var dead : bool = false
+	if not online_updater_thread: dead = true
+	
+	if online_updater_thread.is_alive():
+		dead = true
+		online_updater_thread.wait_to_finish()
+	
+	if dead:
+		online_updater_thread = null
+		online_updater_timer = null
+	else:
+		make_online_updater_timer()
+
+func check_for_online_update() -> void:
+	var fp : String = "user://versions_manifest.json"
+	DirAccess.remove_absolute(fp)
+	var err : Error = await framework_worker.download_file(versions_manifest_url, fp)
+	if err == OK:
+		chatf("Downloaded versions_manifest.json successfully!")
+	else:
+		warn("Failed to download versions_manifest.json!")
+	
+	var manifest: Dictionary = File.load_dict_file(fp)
+	var ns : String = ProjectSettings.get_setting("application/config/name")
+	var v : String = ProjectSettings.get_setting("application/config/version")
+	if manifest.has(ns):
+		var entry : String = manifest.get(ns)
+		chatf(str("App version: " + str(v)))
+		chatf(str("Latest version: " + str(entry)))
+		if entry == v:
+			chatf("You are using the latest available version of " + ns + ".")
+		else:
+			chatf("This version is different than latest available version of " + ns + " found listed online.")
+			_new_version_found_online(entry)
+	else:
+		warn("versions_manifest.json does not have an entry for" + ns + "!")
+
+
+func _new_version_found_online(_new_version:String) -> void: return
 
 ## If extending App with a new class and overriding the _unhandled_input function, make sure to call _app_unhandled_input function.
 func _unhandled_input(event: InputEvent) -> void:
