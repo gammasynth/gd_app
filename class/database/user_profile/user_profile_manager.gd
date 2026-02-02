@@ -39,7 +39,6 @@ static func create_new_profile(username:String) -> UserProfileData:
 
 
 
-
 static func load_all_profiles() -> Array[UserProfileData]:
 	
 	DirAccess.make_dir_absolute("user://user/profiles/")
@@ -79,10 +78,10 @@ static func load_profile_from_path(file_path:String) -> UserProfileData:
 	
 	DirAccess.make_dir_absolute("user://user/profiles/")
 	
-	var passkey = encryption_passkey
-	
 	var profile_dict = await File.load_dict_file(file_path, encryption_passkey)
-	var user_profile = await File.deserialize_object(profile_dict)
+	#var user_profile = await File.deserialize_object(profile_dict)
+	var user_profile = UserProfileData.new()
+	user_profile.init_from_dict(profile_dict)
 	
 	return user_profile
 
@@ -108,10 +107,10 @@ static func save_profile_to_disk(profile:UserProfileData):
 	if not existing_profile_folders.has(username):
 		dir.make_dir(username)
 	
-	var file_dict = File.serialize_object(profile)
+	#var file_dict = File.serialize_object(profile)
+	var file_dict: Dictionary = profile.get_as_dict()
 	
-	var passkey = "factory td profile key"
-	var err = File.save_dict_file(file_dict, file_path, passkey)
+	var err = File.save_dict_file(file_dict, file_path, encryption_passkey)
 	
 	if err == OK:
 		print("Saved Player Profile.")
@@ -131,7 +130,7 @@ static func delete_local_profile(local_profile:UserProfileData):
 	var existing_profile_folders = dir.get_directories()
 	if existing_profile_folders.has(username):
 		
-		var file_to_remove = str(file_path + file_name)
+		#var file_to_remove = str(file_path + file_name)
 		OS.move_to_trash(ProjectSettings.globalize_path(file_path))
 		
 		#dir = DirAccess.open(file_path)
