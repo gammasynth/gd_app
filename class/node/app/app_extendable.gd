@@ -90,7 +90,7 @@ func setup_actions_handler() -> Error:
 
 func setup_registry_system() -> Error:
 	state = APP_STATES.REGISTRY_BOOT
-	await get_tree().create_timer(0.01).timeout
+	#await get_tree().create_timer(0.01).timeout
 	chatf((str("Preparing " + product_type + " files...")))
 	
 	
@@ -100,23 +100,23 @@ func setup_registry_system() -> Error:
 	
 	load_tracker = registry.setup_new_load_tracker()
 	load_tracker.finished.connect(func(): load_tracker = null)
-	await get_tree().process_frame
+	#await get_tree().process_frame
 	pre_load.emit()
-	await get_tree().process_frame
+	#await get_tree().process_frame
 	if ui:
 		if ui_subduing:
 			await ui_mercy
-	await get_tree().process_frame
-	if ui: await RenderingServer.frame_post_draw
+	#await get_tree().process_frame
+	#if ui: await RenderingServer.frame_post_draw
 	
 	#registry.boot_load = true
 	await registry.start()
-	await get_tree().process_frame
-	if ui: await RenderingServer.frame_post_draw
+	#await get_tree().process_frame
+	#if ui: await RenderingServer.frame_post_draw
 	
 	await registry.gather_all_content_to_load()
-	await get_tree().process_frame
-	if ui: await RenderingServer.frame_post_draw
+	#await get_tree().process_frame
+	#if ui: await RenderingServer.frame_post_draw
 	
 	await registry.boot()
 	

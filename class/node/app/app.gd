@@ -145,9 +145,10 @@ func _pre_start() -> Error:
 	var framework_err:Error = await setup_app_framework()
 	if framework_err != OK: return framework_err
 	
-	await _pre_registry_start()
-	
-	await setup_registry_system()
+	if registry_system:
+		await _pre_registry_start()
+		
+		await setup_registry_system()
 	#var networkable_err:Error = await setup_networkable_app()
 	#if networkable_err != OK: return networkable_err
 	
