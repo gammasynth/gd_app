@@ -29,6 +29,7 @@ class_name UserProfileData
 
 var username:String = "user"
 var profile_file_path = ""
+var use_generic_serializer:bool=true
 
 var user_icon: ImageTexture = null:
 	get = get_user_icon, set = set_user_icon
@@ -45,8 +46,11 @@ func _set_user_icon(icon:ImageTexture) -> void: user_icon = icon
 ## Call this function to serialize the live instance of UserProfileData to Dictionary.
 func get_as_dict() -> Dictionary:
 	var profile_dict = {}
-	profile_dict["USERNAME"] = username
-	profile_dict["FILEPATH"] = profile_file_path
+	#profile_dict["USERNAME"] = username# LEGACY CODE
+	#profile_dict["FILEPATH"] = profile_file_path# LEGACY CODE
+	profile_dict.set("username", username)
+	profile_dict.set("profile_file_path", profile_file_path)
+	profile_dict.set("use_generic_serializer", use_generic_serializer)
 	
 	profile_dict = _get_as_dict(profile_dict)
 	
@@ -59,8 +63,14 @@ func _get_as_dict(profile_dict:Dictionary) -> Dictionary:
 
 ## Call this function to initialize variables of UserProfileData from a Dictionary.
 func init_from_dict(profile_dict:Dictionary) -> Error:
-	username = profile_dict["USERNAME"]
-	profile_file_path = profile_dict["FILEPATH"]
+	if profile_dict.has("USERNAME"): username = profile_dict.get("USERNAME")# LEGACY CODE
+	else: username = profile_dict.get("username")
+	
+	if profile_dict.has("FILEPATH"): profile_file_path = profile_dict.get("FILEPATH")# LEGACY CODE
+	else: profile_file_path = profile_dict.get("profile_file_path")
+	
+	if profile_dict.has("use_generic_serializer"): use_generic_serializer = profile_dict.get("use_generic_serializer")
+	
 	_do_init(str(get_script().get_global_name() + username))
 	
 	profile_dict = _init_from_dict(profile_dict)

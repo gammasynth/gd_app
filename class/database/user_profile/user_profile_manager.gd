@@ -79,9 +79,15 @@ static func load_profile_from_path(file_path:String) -> UserProfileData:
 	DirAccess.make_dir_absolute("user://user/profiles/")
 	
 	var profile_dict = await File.load_dict_file(file_path, encryption_passkey)
-	#var user_profile = await File.deserialize_object(profile_dict)
-	var user_profile = UserProfileData.new()
-	user_profile.init_from_dict(profile_dict)
+	
+	var use_generic_serializer = true
+	if profile_dict.has("use_generic_serializer"): use_generic_serializer = profile_dict.get("use_generic_serializer")
+	
+	var user_profile:UserProfileData
+	if use_generic_serializer: user_profile = await File.deserialize_object(profile_dict)
+	else: 
+		user_profile = UserProfileData.new()
+		user_profile.init_from_dict(profile_dict)
 	
 	return user_profile
 
@@ -107,8 +113,10 @@ static func save_profile_to_disk(profile:UserProfileData):
 	if not existing_profile_folders.has(username):
 		dir.make_dir(username)
 	
-	#var file_dict = File.serialize_object(profile)
-	var file_dict: Dictionary = profile.get_as_dict()
+	var file_dict: Dictionary = {}
+	var use_generic_serializer = profile.use_generic_serializer
+	if use_generic_serializer: file_dict = File.serialize_object(profile)
+	else: file_dict = profile.get_as_dict()
 	
 	var err = File.save_dict_file(file_dict, file_path, encryption_passkey)
 	
