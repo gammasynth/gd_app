@@ -1,0 +1,10 @@
+gd_app | version changelog
+___
+---
+
+version 1.0.1 release
+
+- implemented changelogs
+
+- added src/scene/dev/lib_gd_app
+ 

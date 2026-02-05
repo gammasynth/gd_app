@@ -3,6 +3,7 @@
 		{
 			"name" : "gd_app",
 			"type" : "godot",
+			"version" : "1.0.1",
 
 			"date_created" : "jan-29-2025",
 			"source" : "https://github.com/gammasynth/gd_app",
