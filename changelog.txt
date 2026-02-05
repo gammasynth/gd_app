@@ -2,6 +2,11 @@ gd_app | version changelog
 ___
 ---
 
+version 1.0.4 release
+
+- updated lib_gd_app to scene/dev instead of src/scene/dev
+---
+
 version 1.0.3 release
 
 - updated timestamping
