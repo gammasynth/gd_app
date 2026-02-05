@@ -2,6 +2,16 @@ gd_app | version changelog
 ___
 ---
 
+version 1.0.3 release
+
+- updated timestamping
+---
+
+version 1.0.2 release
+
+- updating lib.json information
+---
+
 version 1.0.1 release
 
 - implemented changelogs
