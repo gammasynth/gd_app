@@ -32,14 +32,9 @@ var profile_file_path = ""
 var use_generic_serializer:bool=true
 
 var user_icon: ImageTexture = null:
-	get = get_user_icon, set = set_user_icon
-
-
-func get_user_icon() -> ImageTexture: return _get_user_icon()
+	get = _get_user_icon, set = _set_user_icon
 
 func _get_user_icon() -> ImageTexture: return user_icon
-
-func set_user_icon(icon:ImageTexture) -> void: _set_user_icon(icon)
 
 func _set_user_icon(icon:ImageTexture) -> void: user_icon = icon
 

@@ -1,0 +1,8 @@
+---
+
+version 1.0.6 release
+feb-6-2026-3pm-31-30s-cst
+
+hotfix
+
+- fixed infinite recursion in UserProfileData getters/setters members

@@ -2,6 +2,20 @@ gd_app | version changelog
 ___
 ---
 
+version 1.0.6 release
+feb-6-2026-3pm-31-30s-cst
+
+hotfix
+
+- fixed infinite recursion in UserProfileData getters/setters members
+---
+
+version 1.0.5 release
+feb-6-2026-3pm-18-21s-cst
+
+- UserProfilesManager static methods create_new_profile load_all_profiles, and load_profile_from_path all can optionally take in a profile_class_path and init_args as arguments, for use of scripts that extend from UserProfileData.
+---
+
 version 1.0.4 release
 
 - updated lib_gd_app to scene/dev instead of src/scene/dev

@@ -29,17 +29,26 @@ class_name UserProfileManager
 const DEFAULT_ENCRYPTION_PASSKEY: String = "USER_PROFILE_KEY"
 static var encryption_passkey: String = DEFAULT_ENCRYPTION_PASSKEY
 
-static func create_new_profile(username:String) -> UserProfileData:
+static func create_new_profile(username:String, profile_class_path:String="", init_args:Array=[]) -> UserProfileData:
 	var profile_folder_name = username.validate_filename()
 	var profile_file_path = str("user://user/profiles/" + profile_folder_name + "/")
-	var new_profile = UserProfileData.new(username, profile_file_path)
+	var new_profile : UserProfileData
+	if profile_class_path.is_empty():
+		new_profile = UserProfileData.new(username, profile_file_path)
+	else:
+		var class_script:GDScript = load(profile_class_path)
+		if init_args.is_empty(): new_profile = class_script.new(username, profile_file_path)
+		else:
+			init_args.push_front(profile_file_path)
+			init_args.push_front(username)
+			new_profile = class_script.new.callv(init_args)
 	
 	save_profile_to_disk(new_profile)
 	return new_profile
 
 
 
-static func load_all_profiles() -> Array[UserProfileData]:
+static func load_all_profiles(profile_class_path:String="", init_args:Array=[]) -> Array[UserProfileData]:
 	
 	DirAccess.make_dir_absolute("user://user/profiles/")
 	
@@ -66,7 +75,7 @@ static func load_all_profiles() -> Array[UserProfileData]:
 		var file_name = str(existing_profile_string + ".user")
 		var file_path = str("user://user/profiles/" + existing_profile_string + "/" + file_name)
 		
-		var loaded_profile:UserProfileData = await load_profile_from_path(file_path)
+		var loaded_profile:UserProfileData = await load_profile_from_path(file_path, profile_class_path, init_args)
 		if loaded_profile != null:
 			all_profiles.append(loaded_profile)
 	
@@ -74,7 +83,7 @@ static func load_all_profiles() -> Array[UserProfileData]:
 
 
 
-static func load_profile_from_path(file_path:String) -> UserProfileData:
+static func load_profile_from_path(file_path:String, profile_class_path:String="", init_args:Array=[]) -> UserProfileData:
 	
 	DirAccess.make_dir_absolute("user://user/profiles/")
 	
@@ -86,7 +95,14 @@ static func load_profile_from_path(file_path:String) -> UserProfileData:
 	var user_profile:UserProfileData
 	if use_generic_serializer: user_profile = await File.deserialize_object(profile_dict)
 	else: 
-		user_profile = UserProfileData.new()
+		if profile_class_path.is_empty():
+			user_profile = UserProfileData.new()
+			
+		else:
+			var class_script:GDScript = load(profile_class_path)
+			if init_args.is_empty(): user_profile = class_script.new()
+			else: user_profile = class_script.new.callv(init_args)
+		
 		user_profile.init_from_dict(profile_dict)
 	
 	return user_profile

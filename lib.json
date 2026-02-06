@@ -2,7 +2,7 @@
     "lib": {
         "name": "gd_app",
         "type": "godot",
-        "version": "1.0.4",
+        "version": "1.0.6",
         "date_created": "jan-29-2025",
         "source": "https://github.com/gammasynth/gd_app",
         "origin": "https://github.com/gammasynth/gd_app/archive/refs/heads/main.zip",
@@ -18,6 +18,6 @@
         "add_to_global_environment_path": false,
         "post_install_executable_path": "",
         "build": "release",
-        "latest_update": "feb-5-2026-5pm-42-34s-cst"
+        "latest_update": "feb-6-2026-3pm-31-30s-cst"
     }
 }
