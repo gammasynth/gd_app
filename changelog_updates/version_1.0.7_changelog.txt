@@ -1,0 +1,10 @@
+---
+
+version 1.0.7 release
+feb-16-2026-6pm-4-57s-cst
+
+- changed return void of method AppProgram.get_res_version() to return Dictionary type, returns the loaded res://version.json file's contents
+
+- added AppProgram._track_device_app() -> void to AppProgram class
+
+- AppProgram.track_device_app() calls AppProgram._track_device_app() internally at the end of the function

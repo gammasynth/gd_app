@@ -1,0 +1,18 @@
+---
+
+version 1.0.10 release
+feb-17-2026-5pm-6-6s-cst
+
+- moved track_device_app() call in App._pre_start function to after setup_app_framework() has been called, to allow use of AppFrameworkWorker within the AppProgram.track_device_app() method AppProgram.force_close() if not
+
+- the AppProgram.track_device_app() function will try to continue operation past if not FileAccess.file_exists("user://version.json"), after creating the file, regardless of AppBase.mandatory_device_tracking's value
+
+- added AppBase.device_tracking bool @export member
+
+- AppProgram.track_device_app() function will return at start if not device_tracking
+
+- added tested_internet_with_response bool and tested_internet_data Dictionary members to AppProgram
+
+- added test_http_completed void and is_connected_to_internet bool methods to AppProgram class
+
+- AppProgram.track_device_app() function will check if is_connected_to_internet() bool when  mandatory_device_tracking is enabled, and will call AppProgram.force_close() if no internet connection, will also use AlertSystem.do_alert() if there is an active AlertSystem.instance

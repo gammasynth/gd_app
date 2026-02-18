@@ -91,9 +91,15 @@ var is_input_allowed: bool = true:
 			is_input_allowed = false
 		return is_input_allowed
 
-static var version: String = "0.0.0.1"
+static var version: String = "0.0.1"
 var first_run: bool = true
-@export var mandatory_device_tracking: bool = true
+
+## Collect data from end-user.
+@export var device_tracking: bool = true
+## Force close app & prevent app operation if unable to track device and collect data from it, requires internet connection to operate app.
+@export var mandatory_device_tracking: bool = false
+@export var internet_connection_test_URL:String = "https://google.com"
+
 @export var clear_all_user_files_on_version_update: bool = true
 
 static var is_loader_instance:bool=false

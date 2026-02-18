@@ -1,0 +1,8 @@
+---
+
+version 1.0.8 release
+feb-16-2026-6pm-17-43s-cst
+
+- added query_close() and _query_close() & closing() and _closing() methods to AppProgram class
+
+- query_close() and closing() methods are called from within the AppProgram.close() static method upon AppBase.instance

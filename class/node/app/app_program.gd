@@ -28,10 +28,13 @@ extends AppBase
 
 class_name AppProgram
 
+var tested_internet_with_response:bool = false
+var tested_internet_data:Dictionary = {}
 
-func get_res_version() -> void:
+func get_res_version() -> Dictionary:
 	var res: Dictionary = File.load_dict_file("res://version.json")
 	version = res.get("version")
+	return res
 
 
 
@@ -49,45 +52,75 @@ func _get_general_encryption_key() -> String: return str(floor(hash(title)*PI*ha
 
 func _get_device_track_encryption_key() -> String: return _get_general_encryption_key()
 
+func test_http_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+	tested_internet_with_response = true
+	tested_internet_data.set("result", result)
+	tested_internet_data.set("response_code", response_code)
+	tested_internet_data.set("headers", headers)
+	tested_internet_data.set("body", body)
 
+#request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray)
+## Returns bool if an HTTP request made to [member AppBase.internet_connection_test_URL] return a successful 200 code. Use await when calling.
+func is_connected_to_internet() -> bool:
+	var http:HTTPRequest = HTTPRequest.new()
+	await Make.child(http, self)
+	
+	http.request_completed.connect(test_http_completed)
+	tested_internet_with_response = false
+	tested_internet_data = {}
+	
+	var err:Error = http.request(internet_connection_test_URL)
+	warn("Test Internet Connection", err)
+	if err != OK: return false
+	
+	if not tested_internet_with_response: await http.request_completed
+	
+	if not tested_internet_data.is_empty() and tested_internet_data.has("result") and tested_internet_data.get("result") == 0: return true
+	return false
 
 func track_device_app() -> void:
+	if not device_tracking: return
+	if mandatory_device_tracking:
+		if not await is_connected_to_internet():
+			warn(str("Internet connection is required in order to use this " + product_type))
+			if AlertSystem.instance: AlertSystem.do_alert(Alert.ALERT_TYPES.WARNING, "No Internet Connection!", str("This " + product_type + " requires an internet connection in order to operate! Closing..."), 3.0, 1.0)
+			await get_tree().create_timer(2.0).timeout
+			return force_close()
+	
 	if OS.get_name() == "Web":
 		chatf("App is running in browser, skipping device track!")
 		return
 	
 	state = APP_STATES.DEVICE_START_SESSION
 	
-	get_res_version()
+	var res_version: Dictionary = get_res_version()
 	
 	DirAccess.make_dir_recursive_absolute("user://")
 	if not FileAccess.file_exists("user://version.json"):
-		var res_version: Dictionary = File.load_dict_file("res://version.json")
 		File.save_dict_file(res_version, "user://version.json", _get_device_track_encryption_key())
 		return
-	else: first_run = false
+	else: 
+		first_run = false
 	
 	if not FileAccess.file_exists("user://version.json"):
-		if mandatory_device_tracking: 
-			warn("APP LACKS FILE ACCESS PERMISSIONS IN OPERATING SYSTEM, OR APP FILES WERE TAMPERED WITH. APP USAGE DENIED.")
-			get_tree().quit()
-			return
-		else:
-			warn("device tracking broken?")
-			return
+		warn("APP LACKS FILE ACCESS PERMISSIONS IN OPERATING SYSTEM, OR APP FILES WERE TAMPERED WITH.")
+		warn("Missing version.json in user directory, possibly fatal, continuing...")
+		warn("FILE PERMISSIONS ERROR!")
 	
 	var user_version: Dictionary = File.load_dict_file("user://version.json", _get_device_track_encryption_key())
-	if user_version.get("version") != version:
-		chat("App version is different than local user files versioning.", Text.COLORS.yellow)
+	if not user_version.is_empty() and user_version.get("version") != version:
+		chatf("App version is different than local user files versioning.", Text.COLORS.yellow)
 		
 		if clear_all_user_files_on_version_update:
-			chat("Clearing previous app user data.", Text.COLORS.orange)
+			chatf("Clearing previous app user data.", Text.COLORS.orange)
 			DirAccess.remove_absolute("user://")
 			DirAccess.make_dir_recursive_absolute("user://")
 		
-		var res_version: Dictionary = File.load_dict_file("res://version.json")
 		File.save_dict_file(res_version, "user://version.json", _get_device_track_encryption_key())
+	
+	_track_device_app()
 
+func _track_device_app() -> void: pass
 
 func deep_boot_info() -> void:
 	if OS.get_name() == "Web":
@@ -224,20 +257,36 @@ func _window_mouse_exited() -> void: pass
 # App Operation
 
 # - - -
+## Returns bool true if AppProgram can be closed at this moment. [br][br]
+## Override [method _query_close] instead to insert functionality.
+func query_close() -> bool: return await _query_close()
 
+## Return bool false if you need to prevent the AppProgram from closing.
+func _query_close() -> bool:
+	state = APP_STATES.QUERY
+	# query_type = type_quit ~?
+	# add close query confirm here before close code below
+	# TODO
+	return true
 
-static func force_close() -> void:
-	close(true)
+func closing() -> Error: return await _closing()
 
-static func reboot(forced:bool=false) -> void:
-	close(forced, true)
+## Override this method to insert functionality to execute just prior to AppProgram closing.
+func _closing() -> Error: return OK
+
+static func force_close() -> void: close(true)
+
+static func reboot(forced:bool=false) -> void: close(forced, true)
 
 static func close(forced:bool=false, do_reboot:bool=false) -> void:
 	if OS.get_name() == "Web":
 		instance.chatf("App is running in browser, can't close!")
 		return
+	
 	if forced:
 		state = APP_STATES.CLOSING
+		var close_err:Error = await instance.closing()
+		instance.warn("_closing method", close_err)
 		
 		for pid in instance.related_window_pids:
 			OS.kill(pid)
@@ -249,13 +298,11 @@ static func close(forced:bool=false, do_reboot:bool=false) -> void:
 			instance.get_tree().quit()
 		
 	else:
-		
-		state = APP_STATES.QUERY
-		# query_type = type_quit ~?
-		# add close query confirm here before close code below
+		if not await instance.query_close(): return
 		
 		state = APP_STATES.CLOSING
-		
+		var close_err:Error = await instance.closing()
+		instance.warn("_closing method", close_err)
 		
 		if ui:
 			ui.queue_free()

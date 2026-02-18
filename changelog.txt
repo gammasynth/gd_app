@@ -2,6 +2,48 @@ gd_app | version changelog
 ___
 ---
 
+version 1.0.10 release
+feb-17-2026-5pm-6-6s-cst
+
+- moved track_device_app() call in App._pre_start function to after setup_app_framework() has been called, to allow use of AppFrameworkWorker within the AppProgram.track_device_app() method AppProgram.force_close() if not
+
+- the AppProgram.track_device_app() function will try to continue operation past if not FileAccess.file_exists("user://version.json"), after creating the file, regardless of AppBase.mandatory_device_tracking's value
+
+- added AppBase.device_tracking bool @export member
+
+- AppProgram.track_device_app() function will return at start if not device_tracking
+
+- added tested_internet_with_response bool and tested_internet_data Dictionary members to AppProgram
+
+- added test_http_completed void and is_connected_to_internet bool methods to AppProgram class
+
+- AppProgram.track_device_app() function will check if is_connected_to_internet() bool when  mandatory_device_tracking is enabled, and will call AppProgram.force_close() if no internet connection, will also use AlertSystem.do_alert() if there is an active AlertSystem.instance
+---
+
+version 1.0.9 release
+feb-16-2026-6pm-19-13s-cst
+
+fixed method call directions in AppProgram
+---
+
+version 1.0.8 release
+feb-16-2026-6pm-17-43s-cst
+
+- added query_close() and _query_close() & closing() and _closing() methods to AppProgram class
+
+- query_close() and closing() methods are called from within the AppProgram.close() static method upon AppBase.instance
+---
+
+version 1.0.7 release
+feb-16-2026-6pm-4-57s-cst
+
+- changed return void of method AppProgram.get_res_version() to return Dictionary type, returns the loaded res://version.json file's contents
+
+- added AppProgram._track_device_app() -> void to AppProgram class
+
+- AppProgram.track_device_app() calls AppProgram._track_device_app() internally at the end of the function
+---
+
 version 1.0.6 release
 feb-6-2026-3pm-31-30s-cst
 

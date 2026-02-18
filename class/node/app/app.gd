@@ -116,9 +116,6 @@ func _pre_start() -> Error:
 	chatf("^&[gammasynth]", Text.COLORS.white)
 	chatf(" ")
 	
-	track_device_app()
-	
-	
 	var args_err: Error = await parse_boot_args()
 	if args_err == OK: pass
 	else:
@@ -144,6 +141,8 @@ func _pre_start() -> Error:
 	
 	var framework_err:Error = await setup_app_framework()
 	if framework_err != OK: return framework_err
+	
+	track_device_app()
 	
 	if registry_system:
 		await _pre_registry_start()
