@@ -118,7 +118,7 @@ func track_device_app() -> void:
 		
 		File.save_dict_file(res_version, "user://version.json", _get_device_track_encryption_key())
 	
-	_track_device_app()
+	await _track_device_app()
 
 func _track_device_app() -> void: pass
 

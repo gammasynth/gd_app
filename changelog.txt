@@ -2,6 +2,14 @@ gd_app | version changelog
 ___
 ---
 
+version 1.0.11 release
+feb-17-2026-8pm-27-59s-cst
+
+- added await on calling _track_device_app() in AppProgram.track_device_app()
+- added await on calling track_device_app() in App._pre_start()
+
+---
+
 version 1.0.10 release
 feb-17-2026-5pm-6-6s-cst
 

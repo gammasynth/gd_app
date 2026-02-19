@@ -142,7 +142,7 @@ func _pre_start() -> Error:
 	var framework_err:Error = await setup_app_framework()
 	if framework_err != OK: return framework_err
 	
-	track_device_app()
+	await track_device_app()
 	
 	if registry_system:
 		await _pre_registry_start()
