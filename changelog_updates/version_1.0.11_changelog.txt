@@ -1,8 +1,9 @@
 ---
 
 version 1.0.11 release
-feb-17-2026-8pm-27-59s-cst
+feb-21-2026-3pm-5-24s-cst
 
 - added await on calling _track_device_app() in AppProgram.track_device_app()
 - added await on calling track_device_app() in App._pre_start()
 
+- removed awaits in load_profile_from_path() UserProfileData and load_all_profiles() Array[UserProfileData] functions in UserProfileManager class

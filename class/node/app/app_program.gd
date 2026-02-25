@@ -33,7 +33,7 @@ var tested_internet_data:Dictionary = {}
 
 func get_res_version() -> Dictionary:
 	var res: Dictionary = File.load_dict_file("res://version.json")
-	version = res.get("version")
+	#version = res.get("version")
 	return res
 
 
@@ -108,6 +108,7 @@ func track_device_app() -> void:
 		warn("FILE PERMISSIONS ERROR!")
 	
 	var user_version: Dictionary = File.load_dict_file("user://version.json", _get_device_track_encryption_key())
+	var version = ProjectSettings.get_setting("application/config/version")
 	if not user_version.is_empty() and user_version.get("version") != version:
 		chatf("App version is different than local user files versioning.", Text.COLORS.yellow)
 		

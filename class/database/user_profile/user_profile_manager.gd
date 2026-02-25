@@ -29,6 +29,8 @@ class_name UserProfileManager
 const DEFAULT_ENCRYPTION_PASSKEY: String = "USER_PROFILE_KEY"
 static var encryption_passkey: String = DEFAULT_ENCRYPTION_PASSKEY
 
+static var save_profile_print: String = "Saved Player Profile."
+
 static func create_new_profile(username:String, profile_class_path:String="", init_args:Array=[]) -> UserProfileData:
 	var profile_folder_name = username.validate_filename()
 	var profile_file_path = str("user://user/profiles/" + profile_folder_name + "/")
@@ -75,7 +77,7 @@ static func load_all_profiles(profile_class_path:String="", init_args:Array=[]) 
 		var file_name = str(existing_profile_string + ".user")
 		var file_path = str("user://user/profiles/" + existing_profile_string + "/" + file_name)
 		
-		var loaded_profile:UserProfileData = await load_profile_from_path(file_path, profile_class_path, init_args)
+		var loaded_profile:UserProfileData = load_profile_from_path(file_path, profile_class_path, init_args)
 		if loaded_profile != null:
 			all_profiles.append(loaded_profile)
 	
@@ -87,13 +89,13 @@ static func load_profile_from_path(file_path:String, profile_class_path:String="
 	
 	DirAccess.make_dir_absolute("user://user/profiles/")
 	
-	var profile_dict = await File.load_dict_file(file_path, encryption_passkey)
+	var profile_dict = File.load_dict_file(file_path, encryption_passkey)
 	
 	var use_generic_serializer = true
 	if profile_dict.has("use_generic_serializer"): use_generic_serializer = profile_dict.get("use_generic_serializer")
 	
 	var user_profile:UserProfileData
-	if use_generic_serializer: user_profile = await File.deserialize_object(profile_dict)
+	if use_generic_serializer: user_profile = File.deserialize_object(profile_dict)
 	else: 
 		if profile_class_path.is_empty():
 			user_profile = UserProfileData.new()
@@ -101,7 +103,14 @@ static func load_profile_from_path(file_path:String, profile_class_path:String="
 		else:
 			var class_script:GDScript = load(profile_class_path)
 			if init_args.is_empty(): user_profile = class_script.new()
-			else: user_profile = class_script.new.callv(init_args)
+			else: 
+				var args: Array = []
+				var fn:String = File.get_file_name_from_file_path(file_path)
+				#print(fn)
+				args.append(fn)
+				args.append(file_path)
+				args.append_array(init_args)
+				user_profile = class_script.new.callv(args)
 		
 		user_profile.init_from_dict(profile_dict)
 	
@@ -127,7 +136,10 @@ static func save_profile_to_disk(profile:UserProfileData):
 	
 	var existing_profile_folders = dir.get_directories()
 	if not existing_profile_folders.has(username):
-		dir.make_dir(username)
+		var dir_err:Error = dir.make_dir(username)
+		if dir_err != OK:
+			printerr(str("Can't make directory! " + error_string(dir_err)))
+			return
 	
 	var file_dict: Dictionary = {}
 	var use_generic_serializer = profile.use_generic_serializer
@@ -137,7 +149,7 @@ static func save_profile_to_disk(profile:UserProfileData):
 	var err = File.save_dict_file(file_dict, file_path, encryption_passkey)
 	
 	if err == OK:
-		print("Saved Player Profile.")
+		print(save_profile_print)
 	else:
 		profile_saving_error()
 

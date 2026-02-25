@@ -1,0 +1,9 @@
+---
+
+version 1.0.13 release
+feb-23-2026-5pm-47-17s-cst
+
+- added save_profile_print String static member in UserProfileManager class
+- implemented save_profile_to_disk member into print in function in UserProfileManager class
+
+- removed version member from AppBase and related class extensions

@@ -1,0 +1,7 @@
+---
+
+version 1.0.12 release
+feb-21-2026-8pm-49-14s-cst
+
+- added save_profile_print String static member in UserProfileManager class
+- implemented save_profile_to_disk member into print in function in UserProfileManager class
