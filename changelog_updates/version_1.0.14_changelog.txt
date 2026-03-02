@@ -1,0 +1,6 @@
+---
+
+version 1.0.14 release
+mar-1-2026-7:11pm-(52s)-cst
+
+reimplemented AppBase.version String as getter for ProjectSettings setting "application/config/version"

@@ -91,7 +91,8 @@ var is_input_allowed: bool = true:
 			is_input_allowed = false
 		return is_input_allowed
 
-#static var version: String = "0.0.1"
+static var version: String:
+	get: return ProjectSettings.get_setting("application/config/version")
 var first_run: bool = true
 
 ## Collect data from end-user.
