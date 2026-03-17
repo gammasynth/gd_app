@@ -2,6 +2,18 @@ gd_app | version changelog
 ___
 ---
 
+version 1.0.15 release
+mar-16-2026-11:53pm-(9s)-cdt
+
+established AppResource
+res://lib/gd_app/resource/lib_gd_app_app_resource.tres
+
+fixed lib_gd_app scene
+
+- implemented profile_file_extension static String member to UserProfileManager class
+
+---
+
 version 1.0.14 release
 mar-1-2026-7:11pm-(52s)-cst
 

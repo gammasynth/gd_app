@@ -29,6 +29,8 @@ class_name UserProfileManager
 const DEFAULT_ENCRYPTION_PASSKEY: String = "USER_PROFILE_KEY"
 static var encryption_passkey: String = DEFAULT_ENCRYPTION_PASSKEY
 
+static var profile_file_extension: String = ".user"
+
 static var save_profile_print: String = "Saved Player Profile."
 
 static func create_new_profile(username:String, profile_class_path:String="", init_args:Array=[]) -> UserProfileData:
@@ -74,7 +76,7 @@ static func load_all_profiles(profile_class_path:String="", init_args:Array=[]) 
 	
 	for existing_profile_string in existing_profile_folders:
 		
-		var file_name = str(existing_profile_string + ".user")
+		var file_name = str(existing_profile_string + profile_file_extension)
 		var file_path = str("user://user/profiles/" + existing_profile_string + "/" + file_name)
 		
 		var loaded_profile:UserProfileData = load_profile_from_path(file_path, profile_class_path, init_args)
@@ -122,7 +124,7 @@ static func save_profile_to_disk(profile:UserProfileData):
 	
 	var username = profile.username.validate_filename()
 	
-	var file_name = str(username + ".user")
+	var file_name = str(username + profile_file_extension)
 	var file_path = str("user://user/profiles/" + username + "/" + file_name)
 	
 	DirAccess.make_dir_absolute("user://user/")
@@ -158,7 +160,7 @@ static func save_profile_to_disk(profile:UserProfileData):
 static func delete_local_profile(local_profile:UserProfileData):
 	var username = local_profile.username.validate_filename()
 	
-	var file_name =  str(username + ".user")
+	var file_name =  str(username + profile_file_extension)
 	var file_path = str("user://user/profiles/" + username + "/" + file_name)
 	
 	var dir = DirAccess.open("user://user/profiles/")
