@@ -260,15 +260,14 @@ func _window_mouse_exited() -> void: pass
 # - - -
 ## Returns bool true if AppProgram can be closed at this moment. [br][br]
 ## Override [method _query_close] instead to insert functionality.
-func query_close() -> bool: return await _query_close()
+func query_close() -> bool: 
+	state = APP_STATES.QUERY
+	var is_closing:bool = await _query_close()
+	if not is_closing: state = APP_STATES.RUNNING
+	return is_closing
 
 ## Return bool false if you need to prevent the AppProgram from closing.
-func _query_close() -> bool:
-	state = APP_STATES.QUERY
-	# query_type = type_quit ~?
-	# add close query confirm here before close code below
-	# TODO
-	return true
+func _query_close() -> bool: return true
 
 func closing() -> Error: return await _closing()
 

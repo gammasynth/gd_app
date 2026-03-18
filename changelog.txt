@@ -2,6 +2,12 @@ gd_app | version changelog
 ___
 ---
 
+version 1.0.16 release
+mar-18-2026-3:48am-(28s)-cdt
+
+apply APP_STATES state (QUERY or RUNNING) based on bool result from await _query_close call in query_close function in AppProgram class
+---
+
 version 1.0.15 release
 mar-16-2026-11:53pm-(9s)-cdt
 

@@ -1,0 +1,6 @@
+---
+
+version 1.0.16 release
+mar-18-2026-3:48am-(28s)-cdt
+
+apply APP_STATES state (QUERY or RUNNING) based on bool result from await _query_close call in query_close function in AppProgram class
